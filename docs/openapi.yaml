@@ -1,0 +1,324 @@
+openapi: '3.0.0'
+info:
+  description: The API for runk
+  version: 1.0.0
+  title: Runk API
+  contact:
+    email: nayben@gmail.com
+  license:
+    name: WTFPL
+    url: 'http://www.wtfpl.net/about/'
+servers:
+  - url: https://api.runk.io/v1/
+tags:
+  - name: match
+    description: Everything about your Pets
+  - name: league
+    description: methods on the overall league
+  - name: user
+    description: Operations about user
+paths:
+  /league:
+    get:
+      tags:
+        - league
+      summary: get all leagues
+      responses:
+        200:
+          description: a list of all leagues available
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LeagueSummary'
+    post:
+      tags:
+        - league
+      summary: create a new league
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/League'
+      responses:
+        200:
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/League'
+  /league/{id}:
+    get:
+      tags:
+        - league
+      summary: get the contents of the one league
+      parameters:
+        - in: path
+          name: id
+          description: the id of the league
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: details of the league
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeagueSummary'
+    put:
+      tags:
+        - league
+      summary: update a league
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/League'
+      responses:
+        200:
+          description: an updated match
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/League'
+  /match:
+    get:
+      tags:
+        - match
+      summary: get match history
+      parameters:
+        - in: query
+          name: leagueid
+          schema:
+            type: string
+            format: uuid
+          required: false
+      responses:
+        200:
+          description: a list of matches based on the filters in the parameters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Match'
+    post:
+      tags:
+        - match
+      summary: create a new match
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Match'
+      responses:
+        200:
+          description: a new match in the db
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Match'
+  /match/{id}:
+    get:
+      tags:
+        - match
+      summary: get match details
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: a list of matches based on the filters in the parameters
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Match'
+    put:
+      tags:
+        - match
+      summary: update a match
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Match'
+      responses:
+        200:
+          description: an updated match
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Match'
+    delete:
+      tags:
+        - match
+      summary: delete a match. Can only be done by admins of the league
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: success
+  /user/{id}:
+    get:
+      tags:
+        - user
+      summary: get user by Id
+      parameters:
+        - in: path
+          name: id
+          description: the user id to query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: user found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: user not found
+  /token:
+    post:
+      tags:
+        - user
+      summary: get an access token from the returned code value of the authorizer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                authorizer:
+                  type: string
+                  enum:
+                    - google
+                code:
+                  type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+             schema:
+              type: object
+              properties:
+                access_token:
+                  type: string
+                token_type:
+                  type: string
+                  example: Bearer
+                expires_in:
+                  type: number
+                  example: 3600
+                refresh_token:
+                  type: string
+components:
+  schemas:
+    League:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        displayName:
+          type: string
+          description: the display name in the list
+        inviteCode:
+          type: string
+          description: the code to be used when joining a league
+        users:
+          type: array
+          description: the current users in the league and their privileges
+          items:
+            $ref: '#/components/schemas/LeagueUser'
+    LeagueSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        displayName:
+          type: string
+        inLeague:
+          type: boolean
+          description: whether the current user is in the league or not
+    LeagueUser:
+      type: object
+      properties:
+        userId:
+          type: string
+          format: uuid
+        ranking:
+          type: number
+          description: the elo number for the user
+          format: double
+        role:
+          type: string
+          description: ->
+            admin - can chaneg values on the league, remove users, etc
+            users - can participate in matches
+          enum:
+            - admin
+            - user
+    Match:
+      type: object
+      properties:
+        id:
+          type: string
+          description: auto generated on creation
+          format: uuid
+        leagueId:
+          type: string
+          format: uuid
+        date:
+          type: string
+          description: when the match took place
+          format: date-time
+        players:
+          type: array
+          description: a list of the place ids in the match
+          items:
+            type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        displayName:
+          type: string
+          description: the display name on the user on the screens
+        leagues:
+          type: array
+          description: a list of leagues the user belongs to
+          items:
+            type: string
+            format: uuid

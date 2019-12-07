@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "esModuleInterop": true,
     "lib": ["es2017"],
     "moduleResolution": "node",
     "noUnusedLocals": true,
@@ -8,5 +9,8 @@
     "target": "es2017",
     "outDir": "lib"
   },
+  "include": [
+    "src/**/*"
+  ],
   "exclude": ["node_modules"]
 }

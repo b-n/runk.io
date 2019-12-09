@@ -1,0 +1,3 @@
+auth:
+  handler: src/auth/auth.handler
+  cors: true

@@ -3,6 +3,8 @@ service:
 
 plugins:
   - serverless-webpack
+  - serverless-dynamodb-local
+  - serverless-offline
 
 custom:
   webpack:
@@ -10,6 +12,13 @@ custom:
       forceExclude:
         - aws-sdk
     excludedFiles: src/**/*.test.*
+  dynamodb:
+    stages:
+      - dev
+    start:
+      port: 8000
+      inMemory: true
+      migrate: true
 
 package:
   individually: true
@@ -17,14 +26,32 @@ package:
 provider:
   name: aws
   runtime: nodejs10.x
-  stage: prod
+  stage: dev
   region: eu-central-1
   environment:
+    tables:
+      user: ${self:service.name}-${opt:stage, self:provider.stage}-user
+      league: ${self:service.name}-${opt:stage, self:provider.stage}-league
+      match: ${self:service.name}-${opt:stage, self:provider.stage}-match
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        - "Fn::GetAtt": [ UserTable, Arn ]
+        - "Fn::GetAtt": [ MatchTable, Arn ]
+        - "Fn::GetAtt": [ LeagueTable, Arn ]
 
 functions:
-  hello:
-    handler: handler.hello
-    events:
-      - http:
-          method: get
-          path: hello
+  - ${file(src/auth/definition.yml)}
+  - ${file(src/league/definition.yml)}
+  - ${file(src/match/definition.yml)}
+  - ${file(src/user/definition.yml)}
+
+resources:
+  - ${file(resources/dynamodb.yml)}

@@ -1,0 +1,23 @@
+user-token:
+  handler: src/user/token.handler
+  events:
+    - http:
+        method: get
+        path: user/token
+        cors: true
+user-get:
+  handler: src/user/get.handler
+  events:
+    - http:
+        method: get
+        path: user/{id}
+        cors: true
+        authorizer: auth
+user-put:
+  handler: src/user/put.handler
+  events:
+    - http:
+        method: put
+        path: user
+        cors: true
+        authorizer: auth

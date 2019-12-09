@@ -1,0 +1,27 @@
+league-get:
+  handler: src/league/get.handler
+  events:
+    - http:
+        method: get
+        path: league
+        cors: true
+    - http:
+        method: get
+        path: league/{id}
+        cors: true
+league-post:
+  handler: src/league/post.handler
+  events:
+    - http:
+        method: post
+        path: league
+        cors: true
+        authorizer: auth
+league-put:
+  handler: src/league/put.handler
+  events:
+    - http:
+        method: put
+        path: league/{id}
+        cors: true
+        authorizer: auth

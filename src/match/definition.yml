@@ -1,0 +1,29 @@
+match-get:
+  handler: src/match/get.handler
+  events:
+    - http:
+        method: get
+        path: league/{leagueId}/match
+        cors: true
+        authorizer: auth
+    - http:
+        method: get
+        path: match/{id}
+        cors: true
+        authorizer: auth
+match-post:
+  handler: src/match/post.handler
+  events:
+    - http:
+        method: post
+        path: match
+        cors: true
+        authorizer: auth
+match-put:
+  handler: src/match/put.handler
+  events:
+    - http:
+        method: put
+        path: match/{id}
+        cors: true
+        authorizer: auth

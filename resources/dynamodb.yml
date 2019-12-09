@@ -1,0 +1,66 @@
+Resources:
+  UserTable:
+    Type: "AWS::DynamoDB::Table"
+    DeletionPolicy: Retain
+    Properties:
+      TableName: ${self:provider.environment.tables.user}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        -
+          AttributeName: id
+          AttributeType: S
+      KeySchema:
+        -
+          AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+  LeagueTable:
+    Type: "AWS::DynamoDB::Table"
+    DeletionPolicy: Retain
+    Properties:
+      TableName: ${self:provider.environment.tables.league}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        -
+          AttributeName: id
+          AttributeType: S
+      KeySchema:
+        -
+          AttributeName: id
+          KeyType: HASH
+  MatchTable:
+    Type: "AWS::DynamoDB::Table"
+    DeletionPolicy: Retain
+    Properties:
+      TableName: ${self:provider.environment.tables.match}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        -
+          AttributeName: id
+          AttributeType: S
+        - 
+          AttributeName: leagueId
+          AttributeType: S
+        -
+          AttributeName: matchDate
+          AttributeType: S
+      KeySchema:
+        -
+          AttributeName: id
+          KeyType: HASH
+        - AttributeName: matchDate
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        -
+          IndexName: leagueId-index
+          KeySchema:
+            -
+              AttributeName: leagueId
+              KeyType: HASH
+            - 
+              AttributeName: matchDate
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL

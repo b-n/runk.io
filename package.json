@@ -6,6 +6,7 @@
   "sideEffects": false,
   "scripts": {
     "dev": "sls offline start",
+    "init": "sls dynamodb install",
     "test": "jest"
   },
   "dependencies": {

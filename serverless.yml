@@ -48,10 +48,10 @@ provider:
         - "Fn::GetAtt": [ LeagueTable, Arn ]
 
 functions:
-  - ${file(src/auth/definition.yml)}
-  - ${file(src/league/definition.yml)}
-  - ${file(src/match/definition.yml)}
-  - ${file(src/user/definition.yml)}
+  - ${file(resources/functions-auth.yml)}
+  - ${file(resources/functions-league.yml)}
+  - ${file(resources/functions-match.yml)}
+  - ${file(resources/functions-user.yml)}
 
 resources:
   - ${file(resources/dynamodb.yml)}

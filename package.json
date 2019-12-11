@@ -12,7 +12,9 @@
     "dev": "sls offline start",
     "init": "sls dynamodb install",
     "test": "jest",
-    "lint": "eslint --ext=ts src"
+    "lint": "eslint --ext=ts src",
+    "deploy:dev": "sls deploy --stage dev",
+    "deploy:prod": "sls deploy --stage prod"
   },
   "dependencies": {
     "aws-sdk": "^2.585.0",

@@ -36,6 +36,31 @@ can be changed later).
 
 ## Developing
 
-Get started by running
+Install all dependencies
 
     npm install
+    npm run init
+
+Note: the init script is an alias for sls dynamodb install which installs a 
+local running version of dynamodb
+
+Test using jest with
+
+    npm run test
+
+If doing TDD, then this might help:
+
+    npm run test -- --verbose --watch
+
+If you want to run everything locally (can use to test the app)
+
+    npm run dev
+
+Linting so easy as
+
+    npm run lint
+
+And to deploy(dev/prod stages)
+
+    npm run deploy:dev
+    npm run deploy:prod

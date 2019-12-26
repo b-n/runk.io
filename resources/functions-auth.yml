@@ -1,3 +1,10 @@
 auth:
   handler: src/auth/auth.handler
   cors: true
+auth-token:
+  handler: src/auth/token.handler
+  events:
+    - http:
+        method: get
+        path: auth/token
+        cors: true

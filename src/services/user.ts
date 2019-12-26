@@ -1,8 +1,7 @@
+import addSeconds from 'date-fns/addSeconds'
 import uuidv4 from 'uuid/v4'
 
 import { put, update, query } from './lib/dynamo'
-
-import { getUserAuthorizerFromAuthResult } from './authorizer'
 
 const userTable = process.env.DB_TABLE_USER
 
@@ -86,6 +85,21 @@ const getUserIdFromAuthId = async (id: string, type: string): Promise<string> =>
   })
     .then(results => results.Count === 0 ? null : results.Items[0].userId)
 }
+
+const getUserAuthorizerFromAuthResult = ({
+  id,
+  accessToken,
+  refreshToken,
+  tokenType,
+  expiresIn,
+}: AuthResult): UserAuthorizer => ({
+  id,
+  accessToken,
+  refreshToken,
+  tokenType,
+  retrievedDate: new Date().toISOString(),
+  expires: addSeconds(new Date(), expiresIn).toISOString(),
+})
 
 export {
   getUserIdFromAuthId,

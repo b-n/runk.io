@@ -2,6 +2,8 @@ import fetch from 'node-fetch'
 
 import { getSecret } from './secrets'
 
+const getName = (): string => 'GOOGLE'
+
 const generateLoginUrl = () => {
   return `\
 https://accounts.google.com/o/oauth2/v2/auth\
@@ -11,6 +13,7 @@ https://accounts.google.com/o/oauth2/v2/auth\
 &scope=profile%20email\
 &access_type=offline\
 &prompt=consent\
+&state=GOOGLE\
 `
 }
 
@@ -52,13 +55,33 @@ const getUserInfo = async (access_token: string) => {
   )
     .then(response => response.json())
 }
-// https://accounts.google.com/o/oauth2/v2/auth?client_id=1012747337388-aj3vrc9osip1pu1eqvn167p89loikj8f.apps.googleusercontent.com&redirect_uri=http://localhost:3000/user/token&response_type=code&scope=profile%20email&access_type=offline&prompt=consent
-//
-// http://localhost:3000/?code=4%2FuAFSU3R5tKNCxgIJqOIJa-C9aKPZJzS9J1_wVVe_BDBy0wsmM37iH51khFHDqIhHK31HQsX4ze2mn9S-C4RJFLs&scope=email+profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+openid&authuser=0&session_state=42fd264fc69cc06879cc3bc6601e28290a7d956e..b600&prompt=consent#
-//
+
+const checkAuthCode = async (code: string): Promise<AuthResult> => {
+  const {
+    access_token,
+    expires_in,
+    refresh_token,
+    token_type,
+  } = await getToken(code)
+
+  const { id, email, name, locale, picture } = await getUserInfo(access_token)
+
+  return Promise.resolve({
+    authorizer: 'GOOGLE',
+    id,
+    name,
+    email,
+    locale,
+    pictureURL: picture,
+    accessToken: access_token,
+    refreshToken: refresh_token,
+    tokenType: token_type,
+    expiresIn: expires_in,
+  })
+}
 
 export {
-  getToken,
-  getUserInfo,
+  getName,
+  checkAuthCode,
   generateLoginUrl,
 }

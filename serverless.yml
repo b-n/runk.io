@@ -54,6 +54,7 @@ functions:
   - ${file(resources/functions-league.yml)}
   - ${file(resources/functions-match.yml)}
   - ${file(resources/functions-user.yml)}
+  - ${file(resources/functions-misc.yml)}
 
 resources:
   - ${file(resources/dynamodb.yml)}

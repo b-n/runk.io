@@ -1,6 +1,5 @@
-import addSeconds from 'date-fns/addSeconds'
-
 import { sign, verify, generatePolicy } from './lib/auth'
+import { getUserIdFromAuthId, createUserFromAuth, updateAuth } from './user'
 
 import * as google from './lib/google'
 
@@ -8,54 +7,45 @@ const generateLoginUrls = () => ({
   google: google.generateLoginUrl(),
 })
 
-const checkAuthCallback = async (params: Record<string, any>, type: string): Promise<AuthResult> => {
-  if (type !== 'GOOGLE') {
+const getTokenFromAuthCode = async ({ code, state }): Promise<AuthToken> => {
+  const authorizer = state
+  if (authorizer !== 'GOOGLE') {
     throw new Error('Invalid authorizer')
   }
 
-  const {
-    access_token,
-    expires_in,
-    refresh_token,
-    token_type,
-  } = await google.getToken(params.code)
+  const authService = google
 
-  const { id, email, name, locale, picture } = await google.getUserInfo(access_token)
+  const result = await authService.checkAuthCode(code)
+  const { id, expiresIn } = result
 
-  return Promise.resolve({
-    authorizer: type,
-    id,
-    name,
-    email,
-    locale,
-    pictureURL: picture,
-    accessToken: access_token,
-    refreshToken: refresh_token,
-    tokenType: token_type,
-    expiresIn: expires_in,
-  })
+  const authUserId = await getUserIdFromAuthId(id, authService.getName())
+
+  const userId = await (authUserId === null
+    ? createUserFromAuth(result)
+    : authUserId
+  )
+
+  const accessToken = sign({ userId: id }, { expiresIn })
+  const refreshToken = sign({ userId: id, accessToken }, { expiresIn: '1y' })
+
+  return updateAuth(userId, result, refreshToken)
+    .then(() => ({
+      access_token: accessToken,
+      token_type: 'Bearer',
+      expires_in: expiresIn,
+      refresh_token: refreshToken,
+    }))
 }
 
-const getUserAuthorizerFromAuthResult = ({
-  id,
-  accessToken,
-  refreshToken,
-  tokenType,
-  expiresIn,
-}: AuthResult): UserAuthorizer => ({
-  id,
-  accessToken,
-  refreshToken,
-  tokenType,
-  retrievedDate: new Date().toISOString(),
-  expires: addSeconds(new Date(), expiresIn).toISOString(),
-})
+const getRefreshToken = async (): Promise<AuthToken> => {
+  return null
+}
 
 export {
-  checkAuthCallback,
   sign,
   verify,
+  getTokenFromAuthCode,
+  getRefreshToken,
   generatePolicy,
   generateLoginUrls,
-  getUserAuthorizerFromAuthResult,
 }

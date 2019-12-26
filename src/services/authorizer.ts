@@ -1,7 +1,14 @@
 import { sign, verify, generatePolicy } from './lib/auth'
-import { getUserIdFromAuthId, createUserFromAuth, updateAuth } from './user'
+import {
+  getUserIdFromAuthId,
+  getById,
+  createUserFromAuth,
+  updateRefreshToken,
+} from './user'
 
 import * as google from './lib/google'
+
+import config from '../../config'
 
 const generateLoginUrls = () => ({
   google: google.generateLoginUrl(),
@@ -16,7 +23,7 @@ const getTokenFromAuthCode = async ({ code, state }): Promise<AuthToken> => {
   const authService = google
 
   const result = await authService.checkAuthCode(code)
-  const { id, expiresIn } = result
+  const { id } = result
 
   const authUserId = await getUserIdFromAuthId(id, authService.getName())
 
@@ -25,20 +32,40 @@ const getTokenFromAuthCode = async ({ code, state }): Promise<AuthToken> => {
     : authUserId
   )
 
-  const accessToken = sign({ userId: id }, { expiresIn })
-  const refreshToken = sign({ userId: id, accessToken }, { expiresIn: '1y' })
+  return generateTokens(userId)
+}
 
-  return updateAuth(userId, result, refreshToken)
+const getRefreshToken = async ({ refresh_token }): Promise<AuthToken> => {
+  const { userId } = verify(refresh_token)
+
+  const user = await getById(userId)
+
+  if (
+    !user ||
+    user.refreshToken !== refresh_token
+  ) {
+    throw new Error('Invalid refresh token')
+  }
+
+  if (!user.isActive) {
+    throw new Error('Unauthorized')
+  }
+
+  return generateTokens(user.id)
+}
+
+const generateTokens = async (userId: string): Promise<AuthToken> => {
+  const expiresIn = config.tokenExpiry
+  const accessToken = sign({ userId }, { expiresIn })
+  const refreshToken = sign({ userId, accessToken }, { expiresIn: '1y' })
+
+  return updateRefreshToken(userId, refreshToken)
     .then(() => ({
       access_token: accessToken,
       token_type: 'Bearer',
       expires_in: expiresIn,
       refresh_token: refreshToken,
     }))
-}
-
-const getRefreshToken = async (): Promise<AuthToken> => {
-  return null
 }
 
 export {

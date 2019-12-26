@@ -4,7 +4,7 @@ const config = {
     'Access-Control-Allow-Credentials': true,
     'Access-Control-Allow-Origin': '*.runk.nl',
   },
-  tokenExpiry: '30m',
+  tokenExpiry: 2400,
 }
 
 export default config

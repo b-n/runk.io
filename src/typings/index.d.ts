@@ -1,9 +1,11 @@
 interface User {
   id: string
+  isActive: boolean
   email: string
   displayName: string
   locale: string
   pictureURL: string
+  refreshToken?: string
   authorizers: {
     google?: UserAuthorizer
   }

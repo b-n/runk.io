@@ -35,7 +35,7 @@ const token = async (event) => {
 
   // must be refresh_token
   return {
-    body: await getRefreshToken(),
+    body: await getRefreshToken(queryStringParameters),
     statusCode: 200,
   }
 }

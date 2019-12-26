@@ -3,8 +3,6 @@ import uuidv4 from 'uuid/v4'
 
 import { put, update, query } from './lib/dynamo'
 
-const userTable = process.env.DB_TABLE_USER
-
 const createUserFromAuth = async (record: AuthResult): Promise<string> => {
   const userId = uuidv4()
 
@@ -19,16 +17,19 @@ const createUserFromAuth = async (record: AuthResult): Promise<string> => {
 
   const newUser = {
     id: userId,
+    isActive: true,
     displayName: name,
     email,
     locale: locale || 'en-US',
     pictureURL,
-    authorizers: {},
+    authorizers: {
+      [authorizer]: getUserAuthorizerFromAuthResult(record),
+    },
   } as User
 
   return put({
     Item: newUser,
-    TableName: userTable,
+    TableName: process.env.DB_TABLE_USER,
   })
     .then(() => setAuthUserId(id, authorizer, userId))
     .then(() => userId)
@@ -46,29 +47,21 @@ const setAuthUserId = async (authId: string, type: string, userId: string): Prom
     .then(() => userId)
 }
 
-const updateAuth = async (
+const updateRefreshToken = async (
   userId: string,
-  result: AuthResult,
   refreshToken: string
-): Promise<UserAuthorizer> => {
-  const { authorizer } = result
-  const details = getUserAuthorizerFromAuthResult(result)
-
+): Promise<string> => {
   return update({
     Key: {
       id: userId,
     },
-    UpdateExpression: 'SET authorizers.#authorizer = :detail, refreshToken = :refreshToken',
-    ExpressionAttributeNames: {
-      '#authorizer': authorizer.toLowerCase(),
-    },
+    UpdateExpression: 'refreshToken = :refreshToken',
     ExpressionAttributeValues: {
-      ':detail': details,
       ':refreshToken': refreshToken,
     },
-    TableName: userTable,
+    TableName: process.env.DB_TABLE_USER,
   })
-    .then(() => details)
+    .then(() => refreshToken)
 }
 
 const getUserIdFromAuthId = async (id: string, type: string): Promise<string> => {
@@ -84,6 +77,17 @@ const getUserIdFromAuthId = async (id: string, type: string): Promise<string> =>
     TableName: process.env.DB_TABLE_AUTHORIZER,
   })
     .then(results => results.Count === 0 ? null : results.Items[0].userId)
+}
+
+const getById = async (userId: string): Promise<User> => {
+  return query({
+    KeyConditionExpression: 'id = :userId',
+    ExpressionAttributeValues: {
+      ':userId': userId,
+    },
+    TableName: process.env.DB_TABLE_USER,
+  })
+    .then(results => results.Count === 0 ? null : results.Items[0] as User)
 }
 
 const getUserAuthorizerFromAuthResult = ({
@@ -103,6 +107,7 @@ const getUserAuthorizerFromAuthResult = ({
 
 export {
   getUserIdFromAuthId,
+  getById,
   createUserFromAuth,
-  updateAuth,
+  updateRefreshToken,
 }

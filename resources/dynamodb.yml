@@ -9,22 +9,10 @@ Resources:
         -
           AttributeName: id
           AttributeType: S
-        - 
-          AttributeName: authorizerIds
-          AttributeType: S
       KeySchema:
         -
           AttributeName: id
           KeyType: HASH
-      GlobalSecondaryIndexes:
-        -
-          IndexName: authorizerIds
-          KeySchema:
-            -
-              AttributeName: authorizerIds
-              KeyType: HASH
-          Projection:
-            ProjectionType: ALL
   AuthorizerTable:
     Type: "AWS::DynamoDB::Table"
     DeletionPolicy: Retain

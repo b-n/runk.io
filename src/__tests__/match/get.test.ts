@@ -1,8 +1,4 @@
 describe('GET: match/{id}', () => {
-  test('LOGGEDOUT: fails', () => {
-
-  })
-
   test('LOGGGEDIN_NONMEMBER: fails', () => {
 
   })
@@ -13,10 +9,6 @@ describe('GET: match/{id}', () => {
 })
 
 describe('GET: league/{id}/match', () => {
-  test('LOGGGEDOUT: fails', () => {
-
-  })
-
   test('LOGGEDIN_NONMEMBER: fails', () => {
 
   })

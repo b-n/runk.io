@@ -54,7 +54,7 @@ If doing TDD, then this might help:
 
 If you want to run everything locally (can use to test the app)
 
-    npm run dev
+    npm run start
 
 Linting so easy as
 
@@ -64,3 +64,13 @@ And to deploy(dev/prod stages)
 
     npm run deploy:dev
     npm run deploy:prod
+
+## TODO
+
+Rules: It's still todo until the tests exist
+
+- [ ] Issue token from Google redirect
+- [ ] Issue refresh token
+- [ ] League endpoints
+- [ ] Match endpoints
+- [ ] User endpoints

@@ -3,24 +3,53 @@ Resources:
     Type: "AWS::DynamoDB::Table"
     DeletionPolicy: Retain
     Properties:
-      TableName: ${self:provider.environment.tables.user}
+      TableName: ${self:provider.environment.DB_TABLE_USER}
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         -
           AttributeName: id
           AttributeType: S
+        - 
+          AttributeName: authorizerIds
+          AttributeType: S
       KeySchema:
         -
           AttributeName: id
           KeyType: HASH
-      ProvisionedThroughput:
-        ReadCapacityUnits: 1
-        WriteCapacityUnits: 1
+      GlobalSecondaryIndexes:
+        -
+          IndexName: authorizerIds
+          KeySchema:
+            -
+              AttributeName: authorizerIds
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+  AuthorizerTable:
+    Type: "AWS::DynamoDB::Table"
+    DeletionPolicy: Retain
+    Properties:
+      TableName: ${self:provider.environment.DB_TABLE_AUTHORIZER}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        -
+          AttributeName: id
+          AttributeType: S
+        -
+          AttributeName: type
+          AttributeType: S
+      KeySchema:
+        -
+          AttributeName: id
+          KeyType: HASH
+        -
+          AttributeName: type
+          KeyType: RANGE
   LeagueTable:
     Type: "AWS::DynamoDB::Table"
     DeletionPolicy: Retain
     Properties:
-      TableName: ${self:provider.environment.tables.league}
+      TableName: ${self:provider.environment.DB_TABLE_LEAGUE}
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         -
@@ -34,7 +63,7 @@ Resources:
     Type: "AWS::DynamoDB::Table"
     DeletionPolicy: Retain
     Properties:
-      TableName: ${self:provider.environment.tables.match}
+      TableName: ${self:provider.environment.DB_TABLE_MATCH}
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         -

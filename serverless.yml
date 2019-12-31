@@ -13,6 +13,8 @@ custom:
         - aws-sdk
     excludedFiles: src/**/*.test.*
   stage: ${opt:stageg, self:provider.stage}
+  serverless-offline:
+    port: 3001
   dynamodb:
     stages:
       - dev

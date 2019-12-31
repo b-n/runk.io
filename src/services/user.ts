@@ -55,7 +55,7 @@ const updateRefreshToken = async (
     Key: {
       id: userId,
     },
-    UpdateExpression: 'refreshToken = :refreshToken',
+    UpdateExpression: 'SET refreshToken = :refreshToken',
     ExpressionAttributeValues: {
       ':refreshToken': refreshToken,
     },

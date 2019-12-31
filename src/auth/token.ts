@@ -3,7 +3,7 @@ import 'source-map-support/register'
 
 import { withMiddleware } from '../services/middleware'
 
-import { generateLoginUrls, getTokenFromAuthCode, getRefreshToken } from '../services/authorizer'
+import { generateLoginUrls, getTokenFromAuthCode, getTokenFromRefreshToken } from '../services/authorizer'
 
 const supportedGrants = ['authorization_code', 'refresh_token']
 
@@ -35,7 +35,7 @@ const token = async (event) => {
 
   // must be refresh_token
   return {
-    body: await getRefreshToken(queryStringParameters),
+    body: await getTokenFromRefreshToken(queryStringParameters),
     statusCode: 200,
   }
 }

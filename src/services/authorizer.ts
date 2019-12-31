@@ -35,7 +35,7 @@ const getTokenFromAuthCode = async ({ code, state }): Promise<AuthToken> => {
   return generateTokens(userId)
 }
 
-const getRefreshToken = async ({ refresh_token }): Promise<AuthToken> => {
+const getTokenFromRefreshToken = async ({ refresh_token }): Promise<AuthToken> => {
   const { userId } = verify(refresh_token)
 
   const user = await getById(userId)
@@ -72,7 +72,7 @@ export {
   sign,
   verify,
   getTokenFromAuthCode,
-  getRefreshToken,
+  getTokenFromRefreshToken,
   generatePolicy,
   generateLoginUrls,
 }

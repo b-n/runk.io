@@ -7,8 +7,8 @@ const user = async (event, _context) => {
   return {
     statusCode: 200,
     body: {
-      message: 'Go Serverless Webpack (Typescript) v1.0! Your function executed successfully!',
       input: event,
+      context: _context,
     },
   }
 }

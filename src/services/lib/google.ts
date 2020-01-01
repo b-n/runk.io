@@ -1,5 +1,7 @@
 import fetch from 'node-fetch'
 
+import { handleHttpError, AuthorizerError } from '../errors'
+
 import { getSecret } from './secrets'
 
 const getName = (): string => 'GOOGLE'
@@ -40,6 +42,7 @@ const getToken = async (code: string) => {
       method: 'POST',
     }
   )
+    .then(handleHttpError(AuthorizerError))
     .then(response => response.json())
 }
 

@@ -1,3 +1,8 @@
+import {
+  APIGatewayProxyEvent,
+  Context,
+  APIGatewayProxyResult,
+} from 'aws-lambda'
 import config from '../../config'
 
 const errors = (error) => ({
@@ -20,8 +25,24 @@ const stringify = (result) => ({
   body: JSON.stringify(result.body),
 })
 
-export const withMiddleware = (handler) => (event, context) =>
-  handler(event, context)
-    .catch(error => errors(error))
-    .then(result => stringify(result))
-    .then(result => cors(result))
+interface HandlerResult {
+  body?: {
+    [name: string]: any
+  }
+  headers?: {
+    [name: string]: any
+  }
+  statusCode: number
+}
+
+export type Handler = (
+  event: APIGatewayProxyEvent,
+  context: Context,
+) => Promise<HandlerResult>
+
+export const withMiddleware = (handler: Handler) =>
+  (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> =>
+    Promise.resolve(handler(event, context))
+      .catch(error => errors(error))
+      .then(result => stringify(result))
+      .then(result => cors(result))

@@ -2,6 +2,7 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "lib": ["es2017"],
+    "resolveJsonModule": true,
     "moduleResolution": "node",
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -13,6 +14,6 @@
     "src/**/*"
   ],
   "exclude": [
-    "src/**/*.test.ts"
+    "node_modules"
   ]
 }

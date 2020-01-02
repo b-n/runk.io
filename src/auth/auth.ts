@@ -10,8 +10,6 @@ const handler = async (event: CustomAuthorizerEvent): Promise<CustomAuthorizerRe
 
   const [tokenType, token] = authorizationToken.split(' ')
 
-  console.log(tokenType, token)
-
   if (tokenType !== 'Bearer' || !token) {
     throw new Error('Unauthorized')
   }

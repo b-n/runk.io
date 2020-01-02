@@ -1,43 +1,66 @@
-import { APIGatewayProxyHandler } from 'aws-lambda'
 import 'source-map-support/register'
 
-import { withMiddleware } from '../services/middleware'
+import {
+  withMiddleware,
+  Handler,
+} from '../services/middleware'
+import {
+  generateLoginUrls,
+  getTokenFromAuthCode,
+  getTokenFromRefreshToken,
+} from '../services/authorizer'
 
-import { generateLoginUrls, getTokenFromAuthCode, getTokenFromRefreshToken } from '../services/authorizer'
+import { AuthorizerError } from '../services/errors'
 
-const supportedGrants = ['authorization_code', 'refresh_token']
-
-const token = async (event) => {
+const token: Handler = async (event) => {
   const { queryStringParameters } = event
 
   if (
     queryStringParameters == null ||
-    !queryStringParameters.grant_type ||
-    supportedGrants.indexOf(queryStringParameters.grant_type) === -1
+    !queryStringParameters.grant_type
   ) {
     return {
       body: {
-        message: 'Unsupported grant_type',
         loginUrls: generateLoginUrls(),
       },
-      statusCode: 400,
+      statusCode: 200,
     }
   }
 
   const grantType = queryStringParameters.grant_type
 
-  if (grantType === 'authorization_code') {
-    return {
-      body: await getTokenFromAuthCode(queryStringParameters),
-      statusCode: 200,
+  try {
+    switch (grantType) {
+      case 'authorization_code':
+        return {
+          body: await getTokenFromAuthCode(queryStringParameters),
+          statusCode: 200,
+        }
+      case 'refresh_token':
+        return {
+          body: await getTokenFromRefreshToken(queryStringParameters),
+          statusCode: 200,
+        }
+      default:
+        return {
+          body: {
+            message: 'invalid grant_type',
+          },
+          statusCode: 400,
+        }
     }
-  }
-
-  // must be refresh_token
-  return {
-    body: await getTokenFromRefreshToken(queryStringParameters),
-    statusCode: 200,
+  } catch (e) {
+    console.warn(e)
+    if (e instanceof AuthorizerError) {
+      return {
+        body: {
+          message: e.message,
+        },
+        statusCode: 400,
+      }
+    }
+    throw e
   }
 }
 
-export const handler: APIGatewayProxyHandler = withMiddleware(token)
+export const handler = withMiddleware(token)

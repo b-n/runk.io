@@ -1,3 +1,5 @@
+import { AuthorizerError } from './errors'
+
 import { sign, verify, generatePolicy } from './lib/auth'
 import {
   getUserIdFromAuthId,
@@ -10,17 +12,29 @@ import * as google from './lib/google'
 
 import config from '../../config'
 
-const generateLoginUrls = () => ({
+const authServices = {
+  google,
+}
+
+interface LoginUrls {
+  [name: string]: string
+}
+
+const generateLoginUrls = (): LoginUrls => ({
   google: google.generateLoginUrl(),
 })
 
-const getTokenFromAuthCode = async ({ code, state }): Promise<AuthToken> => {
-  const authorizer = state
-  if (authorizer !== 'GOOGLE') {
-    throw new Error('Invalid authorizer')
-  }
+interface QueryParameters {
+  [name: string]: string
+}
 
-  const authService = google
+const getTokenFromAuthCode = async ({ code, state }: QueryParameters): Promise<AuthToken> => {
+  const authorizer = state.toLowerCase()
+  const authService = authServices[authorizer]
+
+  if (!authService) {
+    throw new AuthorizerError(`Invalid authorizer: ${authorizer}`)
+  }
 
   const result = await authService.checkAuthCode(code)
   const { id } = result
@@ -35,7 +49,7 @@ const getTokenFromAuthCode = async ({ code, state }): Promise<AuthToken> => {
   return generateTokens(userId)
 }
 
-const getTokenFromRefreshToken = async ({ refresh_token }): Promise<AuthToken> => {
+const getTokenFromRefreshToken = async ({ refresh_token }: QueryParameters): Promise<AuthToken> => {
   const { userId } = verify(refresh_token)
 
   const user = await getById(userId)
@@ -44,11 +58,11 @@ const getTokenFromRefreshToken = async ({ refresh_token }): Promise<AuthToken> =
     !user ||
     user.refreshToken !== refresh_token
   ) {
-    throw new Error('Invalid refresh token')
+    throw new AuthorizerError('Invalid refresh token')
   }
 
   if (!user.isActive) {
-    throw new Error('Unauthorized')
+    throw new AuthorizerError('Unauthorized')
   }
 
   return generateTokens(user.id)

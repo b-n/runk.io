@@ -10,7 +10,7 @@ const generateLoginUrl = () => {
   return `\
 https://accounts.google.com/o/oauth2/v2/auth\
 ?client_id=${getSecret('GOOGLE_CLIENT_ID')}\
-&redirect_uri=${getSecret('GOOGLE_REDIRECT_URI')}\
+&redirect_uri=${getSecret('GOOGLE_REDIRECT_URL')}\
 &response_type=code\
 &scope=profile%20email\
 &access_type=offline\
@@ -22,7 +22,7 @@ https://accounts.google.com/o/oauth2/v2/auth\
 const getToken = async (code: string) => {
   const clientId = getSecret('GOOGLE_CLIENT_ID')
   const clientSecret = getSecret('GOOGLE_CLIENT_SECRET')
-  const redirectUri = getSecret('GOOGLE_REDIRECT_URI')
+  const redirectUri = getSecret('GOOGLE_REDIRECT_URL')
 
   const body = {
     code,

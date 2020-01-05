@@ -13,3 +13,6 @@ jspm_packages
 
 # Istanbul directories
 coverage
+
+# SSM values + env vars
+.env

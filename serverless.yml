@@ -4,6 +4,7 @@ service:
 plugins:
   - serverless-webpack
   - serverless-dynamodb-local
+  - serverless-offline-ssm
   - serverless-offline
 
 custom:
@@ -12,7 +13,8 @@ custom:
       forceExclude:
         - aws-sdk
     excludedFiles: src/**/*.test.*
-  stage: ${opt:stageg, self:provider.stage}
+  region: ${opt:region, self:provider.region}
+  stage: ${opt:stage, self:provider.stage}
   serverless-offline:
     port: 3001
   dynamodb:
@@ -24,7 +26,7 @@ custom:
       migrate: true
 
 package:
-  individually: true
+  individually: false
 
 provider:
   name: aws
@@ -32,10 +34,16 @@ provider:
   stage: dev
   region: eu-central-1
   environment:
+    REGION: ${self:custom.region}
+    STAGE: ${self:custom.stage}
     DB_TABLE_USER: ${self:service.name}-${self:custom.stage}-user
     DB_TABLE_AUTHORIZER: ${self:service.name}-${self:custom.stage}-authorizer
     DB_TABLE_LEAGUE: ${self:service.name}-${self:custom.stage}-league
     DB_TABLE_MATCH: ${self:service.name}-${self:custom.stage}-match
+    JWT_SECRET: ${ssm:/runk/${self:custom.stage}/jwtSecret}
+    GOOGLE_CLIENT_ID: ${ssm:/runk/${self:custom.stage}/googleClientId}
+    GOOGLE_CLIENT_SECRET: ${ssm:/runk/${self:custom.stage}/googleClientSecret}
+    GOOGLE_REDIRECT_URL: ${ssm:/runk/${self:custom.stage}/googleRedirectUrl}
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -50,6 +58,9 @@ provider:
         - "Fn::GetAtt": [ AuthorizerTable, Arn ]
         - "Fn::GetAtt": [ MatchTable, Arn ]
         - "Fn::GetAtt": [ LeagueTable, Arn ]
+    - Effect: Allow
+      Action:
+        - ssm:GetParameter
 
 functions:
   - ${file(resources/functions-auth.yml)}

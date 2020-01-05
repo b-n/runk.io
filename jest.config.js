@@ -1,4 +1,6 @@
 module.exports = {
+  clearMocks: true,
+  automock: true,
   roots: [ './src' ],
   transform: {
     '^.+\\.ts$': 'ts-jest'

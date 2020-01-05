@@ -1,3 +1,4 @@
+jest.unmock('../../auth/auth')
 import { handler } from '../../auth/auth'
 
 import * as authorizer from '../../services/authorizer'
@@ -5,11 +6,7 @@ import * as authorizer from '../../services/authorizer'
 import customAuthorizerEvent from '../fixtures/customAuthorizerEvent.json'
 import policyDocument from '../fixtures/policyDocument.json'
 
-jest.mock('../../services/authorizer')
-
 describe('auth', () => {
-  afterEach(() => jest.clearAllMocks())
-
   const spies = {
     verify: jest.spyOn(authorizer, 'verify'),
     generatePolicy: jest.spyOn(authorizer, 'generatePolicy'),
@@ -45,7 +42,9 @@ describe('auth', () => {
   })
 
   test('ERROR: should be a valid token', () => {
-    spies.verify.mockImplementation(() => Promise.reject(new Error('fail')))
+    spies.verify.mockImplementation(() => {
+      throw new Error('fail')
+    })
 
     const event = {
       ...customAuthorizerEvent,

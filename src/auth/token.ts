@@ -50,7 +50,6 @@ const token: Handler = async (event) => {
         }
     }
   } catch (e) {
-    console.warn(e)
     if (e instanceof AuthorizerError) {
       return {
         body: {

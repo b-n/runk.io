@@ -10,5 +10,5 @@ const handleHttpError = (ErrorClass) => async (response) => {
 export {
   handleHttpError,
   AuthorizerError,
-  SecretError
+  SecretError,
 }

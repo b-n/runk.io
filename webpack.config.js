@@ -20,8 +20,11 @@ module.exports = {
     rules: [
       {
         test: /\.ts$/,
-        exclude: /\.test\.ts$/,
-        loader: 'ts-loader'
+        exclude: /.*\.test\.ts$/,
+        loader: 'ts-loader',
+        options: {
+          onlyCompileBundledFiles: true
+        }
       },
     ],
   },

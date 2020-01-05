@@ -1,3 +1,6 @@
+jest.unmock('../../auth/token')
+jest.unmock('../../services/middleware')
+jest.unmock('../../services/errors')
 import { handler } from '../../auth/token'
 
 import { AuthorizerError } from '../../services/errors'
@@ -5,8 +8,6 @@ import { AuthorizerError } from '../../services/errors'
 import * as authorizer from '../../services/authorizer'
 
 import eventHttp from '../fixtures/eventHttp.json'
-
-jest.mock('../../services/authorizer')
 
 describe('GET: token', () => {
   const spies = {
@@ -35,7 +36,6 @@ describe('GET: token', () => {
             loginUrls: loginUrls,
           })
         )
-        spies.generateLoginUrls.mockClear()
       })
   })
 
@@ -51,7 +51,6 @@ describe('GET: token', () => {
       .then((result) => {
         expect(result.statusCode).toEqual(200)
         expect(spies.getTokenFromAuthCode).toHaveBeenCalledTimes(1)
-        spies.getTokenFromAuthCode.mockClear()
       })
   })
 
@@ -67,7 +66,6 @@ describe('GET: token', () => {
       .then((result) => {
         expect(result.statusCode).toEqual(200)
         expect(spies.getTokenFromRefreshToken).toHaveBeenCalledTimes(1)
-        spies.getTokenFromRefreshToken.mockClear()
       })
   })
 
@@ -102,7 +100,6 @@ describe('GET: token', () => {
         expect(result.statusCode).toEqual(400)
         expect(spies.getTokenFromAuthCode).toHaveBeenCalledTimes(1)
         expect(JSON.parse(result.body)).toEqual({ message: 'fail' })
-        spies.getTokenFromAuthCode.mockClear()
       })
   })
 
@@ -122,7 +119,6 @@ describe('GET: token', () => {
         expect(result.statusCode).toEqual(500)
         expect(spies.getTokenFromAuthCode).toHaveBeenCalledTimes(1)
         expect(JSON.parse(result.body)).toEqual({ message: 'fail' })
-        spies.getTokenFromAuthCode.mockClear()
       })
   })
 })

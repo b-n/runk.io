@@ -20,19 +20,11 @@ interface AuthToken {
 
 interface UserAuthorizer {
   id: string
-  accessToken?: string
-  tokenType?: string
-  refreshToken?: string
-  expires: string
   retrievedDate: string
 }
 
 interface AuthResult {
   authorizer: string
-  accessToken: string
-  refreshToken: string
-  expiresIn: number
-  tokenType: string
   id: string
   name: string
   email?: string

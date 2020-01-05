@@ -1,6 +1,5 @@
 import { CustomAuthorizerEvent, CustomAuthorizerResult } from 'aws-lambda'
-
-import { generatePolicy, verify } from '../services/authorizer'
+import { verify } from '../lib/auth'
 
 const handler = async (event: CustomAuthorizerEvent): Promise<CustomAuthorizerResult> => {
   const { authorizationToken } = event
@@ -21,6 +20,26 @@ const handler = async (event: CustomAuthorizerEvent): Promise<CustomAuthorizerRe
     throw new Error('Unauthorized')
   }
 }
+
+const generatePolicy = (
+  principalId: string,
+  Effect: string,
+  Resource: string,
+  context: Record<string, any>
+): CustomAuthorizerResult => ({
+  principalId,
+  policyDocument: {
+    Version: '2012-10-17',
+    Statement: [
+      {
+        Action: 'execute-api:Invoke',
+        Effect,
+        Resource,
+      },
+    ],
+  },
+  context,
+})
 
 export {
   handler,

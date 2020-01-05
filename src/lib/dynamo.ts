@@ -3,7 +3,7 @@ import {
   DocumentClient,
 } from 'aws-sdk/clients/dynamodb'
 
-import config from '../../../config'
+import config from '../../config'
 
 AWS.config.update({
   region: process.env.REGION,

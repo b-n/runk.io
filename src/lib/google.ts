@@ -1,6 +1,6 @@
 import fetch from 'node-fetch'
 
-import { handleHttpError, AuthorizerError } from '../errors'
+import { handleHttpError, AuthorizerError } from './errors'
 
 import { getSecret } from './secrets'
 
@@ -46,28 +46,28 @@ const getToken = async (code: string) => {
     .then(response => response.json())
 }
 
-const getUserInfo = async (access_token: string) => {
+const getUserInfo = async (token_type: string, access_token: string) => {
   return fetch(
     'https://www.googleapis.com/userinfo/v2/me',
     {
       headers: {
-        Authorization: `Bearer ${access_token}`,
+        Authorization: `${token_type} ${access_token}`,
       },
       method: 'GET',
     }
   )
+    .then(handleHttpError(AuthorizerError))
     .then(response => response.json())
+    .then(response => { console.log('userInfo', response); return response })
 }
 
 const checkAuthCode = async (code: string): Promise<AuthResult> => {
   const {
     access_token,
-    expires_in,
-    refresh_token,
     token_type,
   } = await getToken(code)
 
-  const { id, email, name, locale, picture } = await getUserInfo(access_token)
+  const { id, email, name, locale, picture } = await getUserInfo(token_type, access_token)
 
   return Promise.resolve({
     authorizer: 'GOOGLE',
@@ -76,10 +76,6 @@ const checkAuthCode = async (code: string): Promise<AuthResult> => {
     email,
     locale,
     pictureURL: picture,
-    accessToken: access_token,
-    refreshToken: refresh_token,
-    tokenType: token_type,
-    expiresIn: expires_in,
   })
 }
 

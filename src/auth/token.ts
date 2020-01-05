@@ -1,18 +1,20 @@
 import 'source-map-support/register'
+import { AuthorizerError } from '../lib/errors'
+import { withMiddleware } from '../lib/middleware'
+import { sign, verify } from '../lib/auth'
 
-import {
-  withMiddleware,
-  Handler,
-} from '../services/middleware'
-import {
-  generateLoginUrls,
-  getTokenFromAuthCode,
-  getTokenFromRefreshToken,
-} from '../services/authorizer'
+import * as google from '../lib/google'
 
-import { AuthorizerError } from '../services/errors'
+import config from '../../config'
 
-const token: Handler = async (event) => {
+import userModel from '../models/user'
+import authorizerModel from '../models/authorizer'
+
+const authServices = {
+  google,
+}
+
+const tokenHandler = async (event) => {
   const { queryStringParameters } = event
 
   if (
@@ -21,24 +23,30 @@ const token: Handler = async (event) => {
   ) {
     return {
       body: {
-        loginUrls: generateLoginUrls(),
+        loginUrls: generateLoginUrls(authServices),
       },
       statusCode: 200,
     }
   }
 
-  const grantType = queryStringParameters.grant_type
+  const { grant_type, refresh_token, code, state } = queryStringParameters
 
   try {
-    switch (grantType) {
+    switch (grant_type) {
       case 'authorization_code':
+        if (!code || !state) {
+          throw new AuthorizerError('Requires both code and state')
+        }
         return {
-          body: await getTokenFromAuthCode(queryStringParameters),
+          body: await getTokenFromAuthCode({ authorizationCode: code, authorizer: state.toLowerCase() }),
           statusCode: 200,
         }
       case 'refresh_token':
+        if (!refresh_token) {
+          throw new AuthorizerError('Requires a refresh token')
+        }
         return {
-          body: await getTokenFromRefreshToken(queryStringParameters),
+          body: await getTokenFromRefreshToken({ refreshToken: refresh_token }),
           statusCode: 200,
         }
       default:
@@ -62,4 +70,62 @@ const token: Handler = async (event) => {
   }
 }
 
-export const handler = withMiddleware(token)
+export const handler = withMiddleware(tokenHandler)
+
+const generateLoginUrls = (services) =>
+  Object.keys(services).reduce((accumulator, serviceName) => {
+    accumulator[serviceName] = authServices[serviceName].generateLoginUrl()
+    return accumulator
+  }, {} as Record<string, string>)
+
+const getTokenFromAuthCode = async ({ authorizationCode, authorizer }): Promise<AuthToken> => {
+  const authService = authServices[authorizer]
+  if (!authService) {
+    throw new AuthorizerError(`Invalid authorizer: ${authorizer}`)
+  }
+
+  const authResult = await authService.checkAuthCode(authorizationCode)
+  const userId = await authorizerModel.getUserIdByAuthId(
+    authResult.id,
+    authService.getName()
+  )
+  if (userId) {
+    return generateTokens(userId)
+  }
+
+  const newUser = await userModel.createFromAuthResult(authResult)
+  return generateTokens(newUser.id)
+}
+
+const getTokenFromRefreshToken = async ({ refreshToken }): Promise<AuthToken> => {
+  const { userId } = verify(refreshToken)
+
+  const user = await userModel.getById(userId)
+
+  if (
+    !user ||
+    user.refreshToken !== refreshToken
+  ) {
+    throw new AuthorizerError('Invalid refresh token')
+  }
+
+  if (!user.isActive) {
+    throw new AuthorizerError('Unauthorized')
+  }
+
+  return generateTokens(user.id)
+}
+
+const generateTokens = async (userId: string): Promise<AuthToken> => {
+  const expiresIn = config.tokenExpiry
+  const accessToken = sign({ userId }, { expiresIn })
+  const refreshToken = sign({ userId, accessToken }, { expiresIn: '1y' })
+
+  return userModel.updateRefreshToken(userId, refreshToken)
+    .then(() => ({
+      access_token: accessToken,
+      token_type: 'Bearer',
+      expires_in: expiresIn,
+      refresh_token: refreshToken,
+    }))
+}

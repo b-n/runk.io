@@ -1,26 +1,31 @@
 jest.unmock('../../auth/token')
-jest.unmock('../../services/middleware')
-jest.unmock('../../services/errors')
+jest.unmock('../../lib/middleware')
+jest.unmock('../../lib/errors')
 import { handler } from '../../auth/token'
 
-import { AuthorizerError } from '../../services/errors'
+import { AuthorizerError } from '../../lib/errors'
 
-import * as authorizer from '../../services/authorizer'
+import * as google from '../../lib/google'
+import * as authLib from '../../lib/auth'
+import userModel from '../../models/user'
+import authorizerModel from '../../models/authorizer'
 
 import eventHttp from '../fixtures/eventHttp.json'
+import authResult from '../fixtures/authResult.json'
+import userMock from '../fixtures/user.json'
 
 describe('GET: token', () => {
   const spies = {
-    generateLoginUrls: jest.spyOn(authorizer, 'generateLoginUrls'),
-    getTokenFromAuthCode: jest.spyOn(authorizer, 'getTokenFromAuthCode'),
-    getTokenFromRefreshToken: jest.spyOn(authorizer, 'getTokenFromRefreshToken'),
+    checkAuthCode: jest.spyOn(google, 'checkAuthCode'),
+    updateRefreshToken: jest.spyOn(userModel, 'updateRefreshToken'),
+    createFromAuthResult: jest.spyOn(userModel, 'createFromAuthResult'),
+    getUserIdByAuthId: jest.spyOn(authorizerModel, 'getUserIdByAuthId'),
+    verify: jest.spyOn(authLib, 'verify'),
+    sign: jest.spyOn(authLib, 'sign'),
+    getById: jest.spyOn(userModel, 'getById'),
   }
 
   test('provides a list of login URLs', () => {
-    const loginUrls = {
-      runk: 'https://runk.nl/ruuuuuuunk',
-    }
-    spies.generateLoginUrls.mockImplementation(() => loginUrls)
     const event = {
       ...eventHttp,
       queryStringParameters: {
@@ -33,40 +38,263 @@ describe('GET: token', () => {
         expect(result.statusCode).toEqual(200)
         expect(JSON.parse(result.body)).toEqual(
           expect.objectContaining({
-            loginUrls: loginUrls,
+            loginUrls: {},
           })
         )
       })
   })
 
-  test('grant_type: authorization_code', () => {
-    const event = {
-      ...eventHttp,
-      queryStringParameters: {
-        grant_type: 'authorization_code',
-      },
-    }
+  describe('grant_type: authorization_code', () => {
+    test('ERROR: requires code query param', () => {
+      const event = {
+        ...eventHttp,
+        queryStringParameters: {
+          grant_type: 'authorization_code',
+          state: 'testing',
+        },
+      }
 
-    return handler(event, null)
-      .then((result) => {
-        expect(result.statusCode).toEqual(200)
-        expect(spies.getTokenFromAuthCode).toHaveBeenCalledTimes(1)
-      })
+      return handler(event, null)
+        .then((result) => {
+          expect(JSON.parse(result.body).message).toEqual('Requires both code and state')
+          expect(result.statusCode).toEqual(400)
+        })
+    })
+
+    test('ERROR: requires state query param', () => {
+      const event = {
+        ...eventHttp,
+        queryStringParameters: {
+          grant_type: 'authorization_code',
+          code: 'testing',
+        },
+      }
+
+      return handler(event, null)
+        .then((result) => {
+          expect(JSON.parse(result.body).message).toEqual('Requires both code and state')
+          expect(result.statusCode).toEqual(400)
+        })
+    })
+
+    test('ERROR: requires valid authorizer type', () => {
+      const event = {
+        ...eventHttp,
+        queryStringParameters: {
+          grant_type: 'authorization_code',
+          code: 'testing',
+          state: 'testing',
+        },
+      }
+
+      return handler(event, null)
+        .then((result) => {
+          expect(JSON.parse(result.body).message).toEqual('Invalid authorizer: testing')
+          expect(result.statusCode).toEqual(400)
+        })
+    })
+
+    test('ERROR: requires a valid auth response', () => {
+      spies.checkAuthCode.mockImplementation(() => { throw new AuthorizerError('fail') })
+
+      const event = {
+        ...eventHttp,
+        queryStringParameters: {
+          grant_type: 'authorization_code',
+          code: 'testing',
+          state: 'GoOgLe',
+        },
+      }
+
+      return handler(event, null)
+        .then((result) => {
+          expect(JSON.parse(result.body).message).toEqual('fail')
+          expect(result.statusCode).toEqual(400)
+        })
+    })
+
+    test('success - existing user', () => {
+      spies.checkAuthCode.mockImplementation(() => Promise.resolve(authResult))
+      spies.getUserIdByAuthId.mockImplementation(() => Promise.resolve('123'))
+      spies.updateRefreshToken.mockImplementation((token) => Promise.resolve(token))
+      spies.sign.mockImplementation(() => '123')
+
+      const event = {
+        ...eventHttp,
+        queryStringParameters: {
+          grant_type: 'authorization_code',
+          code: 'testing',
+          state: 'GoOgLe',
+        },
+      }
+
+      return handler(event, null)
+        .then((result) => {
+          expect(JSON.parse(result.body)).toEqual(expect.objectContaining({
+            access_token: expect.any(String),
+            token_type: 'Bearer',
+            expires_in: expect.any(Number),
+            refresh_token: expect.any(String),
+          }))
+          expect(result.statusCode).toEqual(200)
+        })
+    })
+
+    test('success - new user', () => {
+      spies.checkAuthCode.mockImplementation(() => Promise.resolve(authResult))
+      spies.getUserIdByAuthId.mockImplementation(() => Promise.resolve(null))
+      spies.updateRefreshToken.mockImplementation((token) => Promise.resolve(token))
+      spies.sign.mockImplementation(() => '123')
+      spies.createFromAuthResult.mockImplementation(() => Promise.resolve(userMock))
+
+      const event = {
+        ...eventHttp,
+        queryStringParameters: {
+          grant_type: 'authorization_code',
+          code: 'testing',
+          state: 'GoOgLe',
+        },
+      }
+
+      return handler(event, null)
+        .then((result) => {
+          expect(JSON.parse(result.body)).toEqual(expect.objectContaining({
+            access_token: expect.any(String),
+            token_type: 'Bearer',
+            expires_in: expect.any(Number),
+            refresh_token: expect.any(String),
+          }))
+          expect(result.statusCode).toEqual(200)
+        })
+    })
   })
 
-  test('grant_type: refresh_token', () => {
-    const event = {
-      ...eventHttp,
-      queryStringParameters: {
-        grant_type: 'refresh_token',
-      },
-    }
+  describe('grant_type: refresh_token', () => {
+    test('ERROR: needs a token', () => {
+      const event = {
+        ...eventHttp,
+        queryStringParameters: {
+          grant_type: 'refresh_token',
+        },
+      }
 
-    return handler(event, null)
-      .then((result) => {
-        expect(result.statusCode).toEqual(200)
-        expect(spies.getTokenFromRefreshToken).toHaveBeenCalledTimes(1)
-      })
+      return handler(event, null)
+        .then((result) => {
+          expect(JSON.parse(result.body).message).toEqual('Requires a refresh token')
+          expect(result.statusCode).toEqual(400)
+        })
+    })
+
+    test('ERROR: not a jwt token', () => {
+      spies.verify.mockImplementation(() => { throw new AuthorizerError('bad token') })
+
+      const event = {
+        ...eventHttp,
+        queryStringParameters: {
+          grant_type: 'refresh_token',
+          refresh_token: '123',
+        },
+      }
+
+      return handler(event, null)
+        .then((result) => {
+          expect(JSON.parse(result.body).message).toEqual('bad token')
+          expect(result.statusCode).toEqual(400)
+        })
+    })
+
+    test('ERROR: no user', () => {
+      spies.verify.mockImplementation(() => ({ userId: '123' }))
+      spies.getById.mockImplementation(() => Promise.resolve(null))
+
+      const event = {
+        ...eventHttp,
+        queryStringParameters: {
+          grant_type: 'refresh_token',
+          refresh_token: '123',
+        },
+      }
+
+      return handler(event, null)
+        .then((result) => {
+          expect(JSON.parse(result.body).message).toEqual('Invalid refresh token')
+          expect(result.statusCode).toEqual(400)
+        })
+    })
+
+    test('ERROR: not a matching token', () => {
+      spies.verify.mockImplementation(() => ({ userId: '123' }))
+      spies.getById.mockImplementation(() => Promise.resolve({
+        ...userMock,
+        refreshToken: '234',
+      }))
+
+      const event = {
+        ...eventHttp,
+        queryStringParameters: {
+          grant_type: 'refresh_token',
+          refresh_token: '123',
+        },
+      }
+
+      return handler(event, null)
+        .then((result) => {
+          expect(JSON.parse(result.body).message).toEqual('Invalid refresh token')
+          expect(result.statusCode).toEqual(400)
+        })
+    })
+
+    test('ERROR: inactive user', () => {
+      spies.verify.mockImplementation(() => ({ userId: '123' }))
+      spies.getById.mockImplementation(() => Promise.resolve({
+        ...userMock,
+        refreshToken: '123',
+        isActive: false,
+      }))
+
+      const event = {
+        ...eventHttp,
+        queryStringParameters: {
+          grant_type: 'refresh_token',
+          refresh_token: '123',
+        },
+      }
+
+      return handler(event, null)
+        .then((result) => {
+          expect(JSON.parse(result.body).message).toEqual('Unauthorized')
+          expect(result.statusCode).toEqual(400)
+        })
+    })
+
+    test('success - new tokens', () => {
+      spies.verify.mockImplementation(() => ({ userId: '123' }))
+      spies.getById.mockImplementation(() => Promise.resolve({
+        ...userMock,
+        refreshToken: '123',
+      }))
+      spies.updateRefreshToken.mockImplementation((token) => Promise.resolve(token))
+      spies.sign.mockImplementation(() => '123')
+
+      const event = {
+        ...eventHttp,
+        queryStringParameters: {
+          grant_type: 'refresh_token',
+          refresh_token: '123',
+        },
+      }
+
+      return handler(event, null)
+        .then((result) => {
+          expect(JSON.parse(result.body)).toEqual(expect.objectContaining({
+            access_token: expect.any(String),
+            token_type: 'Bearer',
+            expires_in: expect.any(Number),
+            refresh_token: expect.any(String),
+          }))
+          expect(result.statusCode).toEqual(200)
+        })
+    })
   })
 
   test('grant_type: invalid', () => {
@@ -84,40 +312,19 @@ describe('GET: token', () => {
       })
   })
 
-  test('Error: AuthorizerError = BadInput', () => {
-    spies.getTokenFromAuthCode.mockImplementation(() => {
-      return Promise.reject(new AuthorizerError('fail'))
-    })
-    const event = {
-      ...eventHttp,
-      queryStringParameters: {
-        grant_type: 'authorization_code',
-      },
-    }
-
-    return handler(event, null)
-      .then((result) => {
-        expect(result.statusCode).toEqual(400)
-        expect(spies.getTokenFromAuthCode).toHaveBeenCalledTimes(1)
-        expect(JSON.parse(result.body)).toEqual({ message: 'fail' })
-      })
-  })
-
   test('Error: unexpected error = Server', () => {
-    spies.getTokenFromAuthCode.mockImplementation(() => {
-      return Promise.reject(new Error('fail'))
-    })
+    spies.verify.mockImplementation(() => { throw new Error('fail') })
     const event = {
       ...eventHttp,
       queryStringParameters: {
-        grant_type: 'authorization_code',
+        grant_type: 'refresh_token',
+        refresh_token: '123',
       },
     }
 
     return handler(event, null)
       .then((result) => {
         expect(result.statusCode).toEqual(500)
-        expect(spies.getTokenFromAuthCode).toHaveBeenCalledTimes(1)
         expect(JSON.parse(result.body)).toEqual({ message: 'fail' })
       })
   })

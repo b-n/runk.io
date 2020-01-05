@@ -1,15 +1,13 @@
 jest.unmock('../../auth/auth')
 import { handler } from '../../auth/auth'
 
-import * as authorizer from '../../services/authorizer'
+import * as auth from '../../lib/auth'
 
 import customAuthorizerEvent from '../fixtures/customAuthorizerEvent.json'
-import policyDocument from '../fixtures/policyDocument.json'
 
 describe('auth', () => {
   const spies = {
-    verify: jest.spyOn(authorizer, 'verify'),
-    generatePolicy: jest.spyOn(authorizer, 'generatePolicy'),
+    verify: jest.spyOn(auth, 'verify'),
   }
 
   test('ERROR: when no token', () => {
@@ -61,18 +59,31 @@ describe('auth', () => {
 
   test('generates a valid policy', () => {
     spies.verify.mockImplementation(() => ({ userId: 'testing' }))
-    spies.generatePolicy.mockImplementation(() => (policyDocument))
 
     const event = {
       ...customAuthorizerEvent,
       authorizationToken: 'Bearer 123',
     }
 
+    const expectedDocument = {
+      principalId: 'testing',
+      policyDocument: {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Action: 'execute-api:Invoke',
+            Effect: 'Allow',
+            Resource: '*',
+          },
+        ],
+      },
+      context: { userId: 'testing' },
+    }
+
     return handler(event)
       .then(result => {
-        expect(result).toEqual(policyDocument)
+        expect(result).toEqual(expectedDocument)
         expect(spies.verify).toHaveBeenCalledTimes(1)
-        expect(spies.generatePolicy).toHaveBeenCalledTimes(1)
       })
   })
 })

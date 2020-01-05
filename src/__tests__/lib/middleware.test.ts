@@ -1,5 +1,5 @@
-jest.unmock('../../services/middleware')
-import { withMiddleware, Handler } from '../../services/middleware'
+jest.unmock('../../lib/middleware')
+import { withMiddleware, Handler } from '../../lib/middleware'
 
 import config from '../../../config'
 

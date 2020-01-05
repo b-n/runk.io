@@ -1,4 +1,4 @@
-import { SecretError } from '../errors'
+import { SecretError } from './errors'
 
 const getSecret = (key: string) => {
   if (!process.env[key]) {

@@ -58,7 +58,6 @@ const getUserInfo = async (token_type: string, access_token: string) => {
   )
     .then(handleHttpError(AuthorizerError))
     .then(response => response.json())
-    .then(response => { console.log('userInfo', response); return response })
 }
 
 const checkAuthCode = async (code: string): Promise<AuthResult> => {
@@ -81,6 +80,8 @@ const checkAuthCode = async (code: string): Promise<AuthResult> => {
 
 export {
   getName,
+  getToken,
+  getUserInfo,
   checkAuthCode,
   generateLoginUrl,
 }

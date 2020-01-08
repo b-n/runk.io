@@ -3,6 +3,11 @@ user-get:
   events:
     - http:
         method: get
+        path: user
+        cors: true
+        authorizer: auth
+    - http:
+        method: get
         path: user/{id}
         cors: true
         authorizer: auth

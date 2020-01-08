@@ -5,10 +5,12 @@ league-get:
         method: get
         path: league
         cors: true
+        authorizer: auth
     - http:
         method: get
         path: league/{id}
         cors: true
+        authorizer: auth
 league-post:
   handler: src/league/post.handler
   events:
@@ -17,11 +19,40 @@ league-post:
         path: league
         cors: true
         authorizer: auth
+    - http:
+        method: post
+        path: league/{id}
+        cors: true
+        authorizer: auth
 league-put:
   handler: src/league/put.handler
   events:
     - http:
         method: put
         path: league/{id}
+        cors: true
+        authorizer: auth
+league-join:
+  handler: src/league/join.handler
+  events:
+    - http:
+        method: post
+        path: league/{id}/join
+        cors: true
+        authorizer: auth
+league-leave:
+  handler: src/league/leave.handler
+  events:
+    - http:
+        method: post
+        path: league/{id}/leave
+        cors: true
+        authorizer: auth
+league-remove:
+  handler: src/league/update-users.handler
+  events:
+    - http:
+        method: post
+        path: league/{id}/update-users
         cors: true
         authorizer: auth

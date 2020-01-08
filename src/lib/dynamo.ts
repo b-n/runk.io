@@ -20,8 +20,19 @@ const put = async (params: DocumentClient.PutItemInput): Promise<DocumentClient.
 
 const update = async (params: DocumentClient.UpdateItemInput): Promise<DocumentClient.UpdateItemOutput> => db.update(params).promise()
 
+const safeProjection = (items: Array<string>) => {
+  const result = items.reduce(
+    (a, c) => { a.ExpressionAttributeNames[`#${c}`] = c; return a },
+    { ExpressionAttributeNames: {}, ProjectionExpression: '' }
+  )
+  result.ProjectionExpression = Object.keys(result.ExpressionAttributeNames).join(',')
+
+  return result
+}
+
 export {
   put,
   query,
   update,
+  safeProjection,
 }

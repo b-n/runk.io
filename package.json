@@ -17,6 +17,7 @@
     "deploy:prod": "sls deploy --stage prod"
   },
   "dependencies": {
+    "@hapi/joi": "^17.0.0",
     "aws-sdk": "^2.585.0",
     "date-fns": "^2.8.1",
     "node-fetch": "^2.6.0",

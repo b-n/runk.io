@@ -3,14 +3,25 @@ import {
   Context,
   APIGatewayProxyResult,
 } from 'aws-lambda'
+import { NotFound, BadInput } from './errors'
 import config from '../../config'
 
-const errors = (error) => ({
-  body: {
-    message: error.message,
-  },
-  statusCode: 500,
-})
+const errors = (error) => {
+  const message = error instanceof NotFound
+    ? 'Not Found'
+    : error.message
+
+  const statusCode = error instanceof NotFound
+    ? 404
+    : error instanceof BadInput
+      ? 400
+      : 500
+
+  return {
+    body: { message },
+    statusCode,
+  }
+}
 
 const cors = (result) => ({
   ...result,

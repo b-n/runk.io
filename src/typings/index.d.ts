@@ -11,6 +11,27 @@ interface User {
   }
 }
 
+interface League {
+  id: string
+  displayName: string
+  isActive: boolean
+  inviteCode: string
+  userCount: number
+  users: Array<LeagueUser>
+}
+
+interface LeagueUser {
+  id?: string
+  score: number
+  isActive: boolean
+  role: LeagueRole
+}
+
+declare const enum LeagueRole {
+  member = 'member',
+  admin = 'admin',
+}
+
 interface AuthToken {
   access_token: string
   token_type: string

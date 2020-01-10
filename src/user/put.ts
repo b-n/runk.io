@@ -1,13 +1,14 @@
-import { APIGatewayProxyHandler } from 'aws-lambda'
 import 'source-map-support/register'
 import Joi from '@hapi/joi'
 
+import { BadInput } from '../lib/errors'
+import { validateRequest } from '../lib/validation'
 import { update } from '../lib/dynamo'
 import { withMiddleware } from '../lib/middleware'
 
 const user = async (event, _context) => {
-  const { body } = event
-  const { userId } = event.requestContext.authorizer
+  const { body, requestContext } = event
+  const { userId } = requestContext.authorizer
 
   if (!body) {
     return {
@@ -16,37 +17,25 @@ const user = async (event, _context) => {
     }
   }
 
-  const request = JSON.parse(body)
+  const newUser = validateRequest(
+    JSON.parse(body),
+    Joi.object({
+      displayName: Joi.string().min(1),
+      email: Joi.string().email(),
+      pictureURL: Joi.string().uri(),
+      locale: Joi.string(),
+    }),
+    { ErrorClass: BadInput }
+  )
 
-  const { value, error } = validate(request)
-
-  if (error !== undefined) {
-    return {
-      statusCode: 400,
-      body: {
-        message: `Validate failures: ${error.details.map(error => error.message).join(', ')}`,
-      },
-    }
-  }
-
-  await updateUser(userId, value)
+  await updateUser(userId, newUser)
 
   return {
     statusCode: 204,
   }
 }
 
-export const handler: APIGatewayProxyHandler = withMiddleware(user)
-
-const validate = (request) => Joi.object({
-  displayName: Joi.string().min(1),
-  email: Joi.string().email(),
-  pictureURL: Joi.string().uri(),
-  locale: Joi.string(),
-}).validate(
-  request,
-  { stripUnknown: true }
-)
+export const handler = withMiddleware(user)
 
 const updateUser = async (userId: string, values: Record<string, any>): Promise<void> => {
   return update({

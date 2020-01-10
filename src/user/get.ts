@@ -5,9 +5,8 @@ import { query, safeProjection } from '../lib/dynamo'
 import { withMiddleware } from '../lib/middleware'
 
 const user = async (event, _context) => {
-  const { pathParameters } = event
-
-  const { userId } = event.requestContext.authorizer
+  const { pathParameters, requestContext } = event
+  const { userId } = requestContext.authorizer
 
   const id = (pathParameters && pathParameters.id) || userId
 

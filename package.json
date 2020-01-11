@@ -12,6 +12,7 @@
     "start": "sls offline start",
     "init": "sls dynamodb install",
     "test": "jest",
+    "test:coverage": "jest --coverage --coverageDirectory coverage",
     "lint": "eslint --ext=ts src",
     "deploy:dev": "sls deploy --stage dev",
     "deploy:prod": "sls deploy --stage prod"

@@ -1,5 +1,7 @@
 # runk.io
 
+[![codecov](https://codecov.io/gh/nzchicken/runk.io/branch/master/graph/badge.svg)](https://codecov.io/gh/nzchicken/runk.io)
+
 A backend hosted at api.runk.nl to support the app at runk.nl
 
 ## Info

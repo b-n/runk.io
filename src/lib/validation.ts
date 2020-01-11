@@ -1,9 +1,10 @@
+import { AnySchema } from '@hapi/joi'
 
 interface ValidateOptions {
   ErrorClass: any
 }
 
-export const validateRequest = (request, obj, { ErrorClass }: ValidateOptions) => {
+export const validateRequest = (request: any, obj: AnySchema, { ErrorClass }: ValidateOptions) => {
   const { value, error } = obj.validate(
     request,
     { stripUnknown: true }

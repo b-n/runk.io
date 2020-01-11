@@ -1,3 +1,4 @@
+jest.unmock('../fixtures/response')
 jest.unmock('../../lib/google')
 jest.unmock('../../lib/errors')
 import {
@@ -11,7 +12,9 @@ import {
 import { AuthorizerError } from '../../lib/errors'
 
 import * as secrets from '../../lib/secrets'
-import fetch from 'node-fetch'
+import * as fetch from 'node-fetch'
+
+import { generateResponse } from '../fixtures/response'
 
 const spies = {
   getSecret: jest.spyOn(secrets, 'getSecret'),
@@ -23,8 +26,7 @@ test('getName - gets google', () => {
 })
 
 test('generateLoginUrl - generates a login url', () => {
-  spies.getSecret.mockImplementation(() => 'testing')
-  expect(generateLoginUrl()).toEqual('https://accounts.google.com/o/oauth2/v2/auth?client_id=testing&redirect_uri=testing&response_type=code&scope=profile%20email&access_type=offline&prompt=consent&state=GOOGLE')
+  expect(generateLoginUrl()).toEqual('https://accounts.google.com/o/oauth2/v2/auth?client_id=GOOGLE_CLIENT_ID&redirect_uri=GOOGLE_REDIRECT_URL&response_type=code&scope=profile%20email&access_type=offline&prompt=consent&state=GOOGLE')
   expect(spies.getSecret).toHaveBeenCalledTimes(2)
   expect(spies.getSecret).toHaveBeenCalledWith('GOOGLE_CLIENT_ID')
   expect(spies.getSecret).toHaveBeenCalledWith('GOOGLE_REDIRECT_URL')
@@ -32,35 +34,37 @@ test('generateLoginUrl - generates a login url', () => {
 
 describe('getToken', () => {
   test('Error: fails with AuthorizerError', () => {
-    const response = {
+    const response = generateResponse({
       ok: false,
       status: 400,
       statusText: 'BadInput',
-    }
+    })
+
     spies.fetch.mockImplementation(() => Promise.resolve(response))
     expect(getToken('123')).rejects.toThrow(AuthorizerError)
   })
 
   test('success: gives some json back', () => {
     const responseJSON = { message: 'OK' }
-    const response = {
+    const response = generateResponse({
       ok: true,
       status: 200,
       statusText: 'OK',
       json: () => responseJSON,
-    }
+    })
     spies.fetch.mockImplementation(() => Promise.resolve(response))
 
     expect(getToken('123')).resolves.toEqual(responseJSON)
+
     expect(spies.fetch).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
         body: JSON.stringify({
           code: '123',
-          client_id: 'testing',
-          client_secret: 'testing',
+          client_id: 'GOOGLE_CLIENT_ID',
+          client_secret: 'GOOGLE_CLIENT_SECRET',
           grant_type: 'authorization_code',
-          redirect_uri: 'testing',
+          redirect_uri: 'GOOGLE_REDIRECT_URL',
         }),
       })
     )
@@ -69,23 +73,23 @@ describe('getToken', () => {
 
 describe('getUserInfo', () => {
   test('Error: fails with AuthorizerError', () => {
-    const response = {
+    const response = generateResponse({
       ok: false,
       status: 400,
       statusText: 'BadInput',
-    }
+    })
     spies.fetch.mockImplementation(() => Promise.resolve(response))
     expect(getUserInfo('Bearer', '123')).rejects.toThrow(AuthorizerError)
   })
 
   test('success: gives some json back', () => {
     const responseJSON = { message: 'OK' }
-    const response = {
+    const response = generateResponse({
       ok: true,
       status: 200,
       statusText: 'OK',
       json: () => responseJSON,
-    }
+    })
     spies.fetch.mockImplementation(() => Promise.resolve(response))
     expect(getUserInfo('Bearer', '123')).resolves.toEqual(responseJSON)
     expect(spies.fetch).toHaveBeenCalledWith(
@@ -109,10 +113,10 @@ test('checkAuthCode - gives all details', () => {
     locale: 'en-NZ',
     picture: 'https://picsum.photos/200',
   }
-  const response = {
+  const response = generateResponse({
     ok: true,
     json: () => responseJSON,
-  }
+  })
   spies.fetch.mockImplementation(() => Promise.resolve(response))
 
   expect(checkAuthCode('123')).resolves.toEqual({

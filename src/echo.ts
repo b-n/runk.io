@@ -1,9 +1,9 @@
 import { APIGatewayProxyHandler } from 'aws-lambda'
 import 'source-map-support/register'
 
-import { withMiddleware } from './lib/middleware'
+import { withMiddleware, Handler } from './lib/middleware'
 
-const user = async (event, _context) => {
+const user: Handler = async (event, _context) => {
   return {
     statusCode: 200,
     body: {

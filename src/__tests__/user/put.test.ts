@@ -4,12 +4,12 @@ jest.unmock('@hapi/joi')
 import { handler } from '../../user/put'
 
 import * as validation from '../../lib/validation'
-import * as dynamo from '../../lib/dynamo'
+import * as userRepo from '../../repositories/user'
 
 import eventHttp from '../fixtures/eventHttp.json'
 
 const spies = {
-  update: jest.spyOn(dynamo, 'update'),
+  update: jest.spyOn(userRepo, 'update'),
   validateRequest: jest.spyOn(validation, 'validateRequest'),
 }
 

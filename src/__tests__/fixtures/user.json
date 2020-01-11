@@ -5,5 +5,6 @@
   "locale": "",
   "pictureURL": "",
   "isActive": true,
-  "authorizers": {}
+  "authorizers": {},
+  "leagues": []
 }

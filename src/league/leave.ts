@@ -2,10 +2,12 @@ import { APIGatewayProxyHandler } from 'aws-lambda'
 import 'source-map-support/register'
 
 import { NotFound, BadInput } from '../lib/errors'
-import { query, update, safeProjection } from '../lib/dynamo'
-import { withMiddleware } from '../lib/middleware'
+import { withMiddleware, Handler } from '../lib/middleware'
 
-const league = async (event, _context) => {
+import { getById, setUsers } from '../repositories/league'
+import { removeLeague } from '../repositories/user'
+
+const league: Handler = async (event) => {
   const { pathParameters } = event
 
   const id = pathParameters.id
@@ -29,10 +31,11 @@ const league = async (event, _context) => {
 
   const newLeagueUsers = league.users.filter(user => user.id !== userId)
 
-  await removeUserFromLeague(
+  await setUsers(
     newLeagueUsers,
     id
   )
+    .then(() => removeLeague)
 
   return {
     statusCode: 204,
@@ -40,36 +43,3 @@ const league = async (event, _context) => {
 }
 
 export const handler: APIGatewayProxyHandler = withMiddleware(league)
-
-const getById = async (leagueId: string): Promise<League> => {
-  const { ProjectionExpression, ExpressionAttributeNames } = safeProjection(['id', 'inviteCode', 'users'])
-
-  return query({
-    KeyConditionExpression: 'id = :leagueId',
-    ExpressionAttributeValues: {
-      ':leagueId': leagueId,
-    },
-    ExpressionAttributeNames,
-    TableName: process.env.DB_TABLE_LEAGUE,
-    ProjectionExpression,
-  })
-    .then(results => results.Count === 0 ? null : results.Items[0] as League)
-}
-
-const removeUserFromLeague = async (newUserList: Array<LeagueUser>, leagueId: string): Promise<void> => {
-  return update({
-    Key: {
-      id: leagueId,
-    },
-    UpdateExpression: 'SET userCount = :userCount,#users = :users',
-    ExpressionAttributeNames: {
-      '#users': 'users',
-    },
-    ExpressionAttributeValues: {
-      ':users': newUserList,
-      ':userCount': newUserList.length,
-    },
-    TableName: process.env.DB_TABLE_LEAGUE,
-  })
-    .then(() => null)
-}

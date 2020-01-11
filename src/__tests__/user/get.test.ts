@@ -2,20 +2,23 @@ jest.unmock('../../user/get')
 jest.unmock('../../lib/middleware')
 import { handler } from '../../user/get'
 
-import * as dynamo from '../../lib/dynamo'
+import * as user from '../../repositories/user'
 
 import eventHttp from '../fixtures/eventHttp.json'
+import userStub from '../fixtures/user.json'
 
 const spies = {
-  query: jest.spyOn(dynamo, 'query'),
+  getById: jest.spyOn(user, 'getById'),
 }
 
 describe('GET: user', () => {
   test('gets current user details', () => {
-    spies.query.mockImplementation(() => Promise.resolve({
-      Items: [{ id: '123' }],
-      Count: 1,
-    }))
+    const queryResult = {
+      ...userStub,
+      id: '123',
+    }
+    spies.getById.mockImplementation(() => Promise.resolve(queryResult))
+
     const event = {
       ...eventHttp,
       requestContext: {
@@ -28,23 +31,17 @@ describe('GET: user', () => {
 
     return handler(event, null)
       .then(result => {
-        expect(JSON.parse(result.body)).toEqual({
-          id: '123',
-        })
+        expect(JSON.parse(result.body)).toEqual(queryResult)
         expect(result.statusCode).toEqual(200)
-        expect(spies.query).toHaveBeenCalledTimes(1)
-        expect(spies.query).toHaveBeenCalledWith(expect.objectContaining({
-          ExpressionAttributeValues: {
-            ':userId': '123',
-          },
-        }))
+        expect(spies.getById).toHaveBeenCalledTimes(1)
+        expect(spies.getById).toHaveBeenCalledWith('123', { sameUser: true })
       })
   })
 })
 
 describe('GET: user/{id}', () => {
   test('ERROR: user doesn\'t exist', () => {
-    spies.query.mockImplementation(() => Promise.resolve({ Count: 0 }))
+    spies.getById.mockImplementation(() => Promise.resolve(null))
     const event = {
       ...eventHttp,
       requestContext: {
@@ -62,10 +59,11 @@ describe('GET: user/{id}', () => {
   })
 
   test('gets user details', () => {
-    spies.query.mockImplementation(() => Promise.resolve({
-      Items: [{ id: '234' }],
-      Count: 1,
-    }))
+    const queryResult = {
+      ...userStub,
+      id: '234',
+    }
+    spies.getById.mockImplementation(() => Promise.resolve(queryResult))
     const event = {
       ...eventHttp,
       pathParameters: {
@@ -81,16 +79,10 @@ describe('GET: user/{id}', () => {
 
     return handler(event, null)
       .then(result => {
-        expect(JSON.parse(result.body)).toEqual({
-          id: '234',
-        })
+        expect(JSON.parse(result.body)).toEqual(queryResult)
         expect(result.statusCode).toEqual(200)
-        expect(spies.query).toHaveBeenCalledTimes(1)
-        expect(spies.query).toHaveBeenCalledWith(expect.objectContaining({
-          ExpressionAttributeValues: {
-            ':userId': '234',
-          },
-        }))
+        expect(spies.getById).toHaveBeenCalledTimes(1)
+        expect(spies.getById).toHaveBeenCalledWith('234', { sameUser: false })
       })
   })
 })

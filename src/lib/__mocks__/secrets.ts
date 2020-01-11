@@ -1,1 +1,1 @@
-export const getSecret = (key) => key
+export const getSecret = (key: string) => key

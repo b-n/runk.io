@@ -2,12 +2,20 @@ import jwt from 'jsonwebtoken'
 
 import { getSecret } from './secrets'
 
-const privateKey = getSecret('JWT_SECRET')
+export interface Authorizer {
+  getName: () => string
+  checkAuthCode: (code: string) => Promise<AuthResult>
+  generateLoginUrl: () => string
+}
 
-export const sign = (payload: any, { expiresIn }): string =>
+interface SignOptions {
+  expiresIn: number
+}
+
+export const sign = (payload: Record<string, any>, { expiresIn }: SignOptions): string =>
   jwt.sign(
     payload,
-    privateKey,
+    getSecret('JWT_SECRET'),
     {
       expiresIn,
     }
@@ -16,5 +24,5 @@ export const sign = (payload: any, { expiresIn }): string =>
 export const verify = (token: string) =>
   jwt.verify(
     token,
-    privateKey
+    getSecret('JWT_SECRET')
   )

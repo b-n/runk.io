@@ -18,6 +18,10 @@
   },
   "dependencies": {
     "@hapi/joi": "^17.0.0",
+    "@types/hapi__joi": "^16.0.6",
+    "@types/jsonwebtoken": "^8.3.5",
+    "@types/node-fetch": "^2.5.4",
+    "@types/uuid": "^3.4.6",
     "aws-sdk": "^2.585.0",
     "date-fns": "^2.8.1",
     "node-fetch": "^2.6.0",

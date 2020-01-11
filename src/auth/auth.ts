@@ -14,7 +14,7 @@ const handler = async (event: CustomAuthorizerEvent): Promise<CustomAuthorizerRe
   }
 
   try {
-    const context = verify(token)
+    const context = verify(token) as any
     return generatePolicy(context.userId, 'Allow', '*', context)
   } catch (e) {
     throw new Error('Unauthorized')

@@ -6,24 +6,28 @@ import {
 import { NotFound, BadInput } from './errors'
 import config from '../../config'
 
-const errors = (error) => {
-  const message = error instanceof NotFound
-    ? 'Not Found'
-    : error.message
+const errors = (error: any) => {
+  if (error instanceof NotFound) {
+    return {
+      body: { message: 'Not Found' },
+      statusCode: 404,
+    }
+  }
 
-  const statusCode = error instanceof NotFound
-    ? 404
-    : error instanceof BadInput
-      ? 400
-      : 500
+  if (error instanceof BadInput) {
+    return {
+      body: { message: error.message },
+      statusCode: 400,
+    }
+  }
 
   return {
-    body: { message },
-    statusCode,
+    body: { message: error.message },
+    statusCode: 500,
   }
 }
 
-const cors = (result) => ({
+const cors = (result: any) => ({
   ...result,
   headers: {
     ...result.headers,
@@ -31,7 +35,7 @@ const cors = (result) => ({
   },
 })
 
-const stringify = (result) => ({
+const stringify = (result: any) => ({
   ...result,
   body: JSON.stringify(result.body),
 })

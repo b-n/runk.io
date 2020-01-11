@@ -27,7 +27,7 @@ const getUserIdByAuthId = async (id: string, type: string): Promise<string> => {
     .then(results => results.Count === 0 ? null : results.Items[0].userId)
 }
 
-export default {
+export {
   create,
   getUserIdByAuthId,
 }

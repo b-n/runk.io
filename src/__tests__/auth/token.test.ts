@@ -7,8 +7,8 @@ import { AuthorizerError } from '../../lib/errors'
 
 import * as google from '../../lib/google'
 import * as authLib from '../../lib/auth'
-import userModel from '../../models/user'
-import authorizerModel from '../../models/authorizer'
+import * as userRepo from '../../repositories/user'
+import * as authorizerRepo from '../../repositories/authorizer'
 
 import eventHttp from '../fixtures/eventHttp.json'
 import authResult from '../fixtures/authResult.json'
@@ -17,19 +17,19 @@ import userMock from '../fixtures/user.json'
 describe('GET: token', () => {
   const spies = {
     checkAuthCode: jest.spyOn(google, 'checkAuthCode'),
-    updateRefreshToken: jest.spyOn(userModel, 'updateRefreshToken'),
-    createFromAuthResult: jest.spyOn(userModel, 'createFromAuthResult'),
-    getUserIdByAuthId: jest.spyOn(authorizerModel, 'getUserIdByAuthId'),
+    update: jest.spyOn(userRepo, 'update'),
+    createFromAuthResult: jest.spyOn(userRepo, 'createFromAuthResult'),
+    getUserIdByAuthId: jest.spyOn(authorizerRepo, 'getUserIdByAuthId'),
     verify: jest.spyOn(authLib, 'verify'),
     sign: jest.spyOn(authLib, 'sign'),
-    getById: jest.spyOn(userModel, 'getById'),
+    getById: jest.spyOn(userRepo, 'getById'),
   }
 
   test('provides a list of login URLs', () => {
     const event = {
       ...eventHttp,
       queryStringParameters: {
-        grant_type: undefined,
+        grant_type: '',
       },
     }
 
@@ -116,7 +116,7 @@ describe('GET: token', () => {
     test('success - existing user', () => {
       spies.checkAuthCode.mockImplementation(() => Promise.resolve(authResult))
       spies.getUserIdByAuthId.mockImplementation(() => Promise.resolve('123'))
-      spies.updateRefreshToken.mockImplementation((token) => Promise.resolve(token))
+      spies.update.mockImplementation(() => Promise.resolve(null))
       spies.sign.mockImplementation(() => '123')
 
       const event = {
@@ -143,7 +143,7 @@ describe('GET: token', () => {
     test('success - new user', () => {
       spies.checkAuthCode.mockImplementation(() => Promise.resolve(authResult))
       spies.getUserIdByAuthId.mockImplementation(() => Promise.resolve(null))
-      spies.updateRefreshToken.mockImplementation((token) => Promise.resolve(token))
+      spies.update.mockImplementation(() => Promise.resolve(null))
       spies.sign.mockImplementation(() => '123')
       spies.createFromAuthResult.mockImplementation(() => Promise.resolve(userMock))
 
@@ -273,7 +273,7 @@ describe('GET: token', () => {
         ...userMock,
         refreshToken: '123',
       }))
-      spies.updateRefreshToken.mockImplementation((token) => Promise.resolve(token))
+      spies.update.mockImplementation(() => Promise.resolve(null))
       spies.sign.mockImplementation(() => '123')
 
       const event = {

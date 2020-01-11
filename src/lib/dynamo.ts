@@ -20,14 +20,25 @@ const put = async (params: DocumentClient.PutItemInput): Promise<DocumentClient.
 
 const update = async (params: DocumentClient.UpdateItemInput): Promise<DocumentClient.UpdateItemOutput> => db.update(params).promise()
 
-const safeProjection = (items: Array<string>) => {
+interface SafeProjectionResult {
+  ExpressionAttributeNames: {
+    [name: string]: string
+  }
+  ProjectionExpression: string
+}
+
+const safeProjection = (items: Array<string>): SafeProjectionResult => {
   const result = items.reduce(
     (a, c) => { a.ExpressionAttributeNames[`#${c}`] = c; return a },
-    { ExpressionAttributeNames: {}, ProjectionExpression: '' }
+    { ExpressionAttributeNames: {}, ProjectionExpression: '' } as SafeProjectionResult
   )
   result.ProjectionExpression = Object.keys(result.ExpressionAttributeNames).join(',')
 
   return result
+}
+
+const createSet = (items: Array<any>) => {
+  return db.createSet(items)
 }
 
 export {
@@ -35,4 +46,5 @@ export {
   query,
   update,
   safeProjection,
+  createSet,
 }

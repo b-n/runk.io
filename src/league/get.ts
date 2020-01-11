@@ -2,20 +2,21 @@ import { APIGatewayProxyHandler } from 'aws-lambda'
 import 'source-map-support/register'
 
 import { NotFound } from '../lib/errors'
-import { query, safeProjection } from '../lib/dynamo'
-import { withMiddleware } from '../lib/middleware'
+import { withMiddleware, Handler } from '../lib/middleware'
 
-const league = async (event, _context) => {
+import { getById } from '../repositories/league'
+
+const league: Handler = async (event) => {
   // TODO: Need to handle getByIds
-  const { pathParameters } = event
+  const { pathParameters, requestContext } = event
 
-  const { userId } = event.requestContext.authorizer
+  const { userId } = requestContext.authorizer
 
   const id = pathParameters && pathParameters.id
 
+  console.log(id, userId)
   if (id) {
     const league = await getById(id)
-    console.log(id, league)
 
     if (!league) {
       throw new NotFound()
@@ -27,7 +28,7 @@ const league = async (event, _context) => {
     }
   }
 
-  const leagues = await getByIds(id, userId)
+  const leagues = await getById(id)
   return {
     body: leagues,
     statusCode: 200,
@@ -35,34 +36,3 @@ const league = async (event, _context) => {
 }
 
 export const handler: APIGatewayProxyHandler = withMiddleware(league)
-
-const getById = async (leagueId: string): Promise<League> => {
-  const { ProjectionExpression, ExpressionAttributeNames } = safeProjection(['id', 'name', 'userCount', 'users'])
-
-  return query({
-    KeyConditionExpression: 'id = :leagueId',
-    ExpressionAttributeNames,
-    ExpressionAttributeValues: {
-      ':leagueId': leagueId,
-    },
-    TableName: process.env.DB_TABLE_LEAGUE,
-    ProjectionExpression,
-  })
-    .then(results => results.Count === 0 ? null : results.Items[0] as League)
-}
-
-const getByIds = async (userId: string, sameUser: boolean): Promise<User> => {
-  const projection = sameUser
-    ? 'id,displayName,email,pictureURL,locale'
-    : 'id,displayName,pictureURL'
-
-  return query({
-    KeyConditionExpression: 'id = :userId',
-    ExpressionAttributeValues: {
-      ':userId': userId,
-    },
-    TableName: process.env.DB_TABLE_USER,
-    ProjectionExpression: projection,
-  })
-    .then(results => results.Count === 0 ? null : results.Items[0] as User)
-}

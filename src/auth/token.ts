@@ -1,20 +1,24 @@
 import 'source-map-support/register'
 import { AuthorizerError } from '../lib/errors'
-import { withMiddleware } from '../lib/middleware'
-import { sign, verify } from '../lib/auth'
+import { withMiddleware, Handler } from '../lib/middleware'
+import { sign, verify, Authorizer } from '../lib/auth'
 
 import * as google from '../lib/google'
 
 import config from '../../config'
 
-import userModel from '../models/user'
-import authorizerModel from '../models/authorizer'
+import {
+  getById,
+  createFromAuthResult,
+  update,
+} from '../repositories/user'
+import { getUserIdByAuthId } from '../repositories/authorizer'
 
-const authServices = {
+const authServices: Record<string, Authorizer> = {
   google,
 }
 
-const tokenHandler = async (event) => {
+const token: Handler = async (event) => {
   const { queryStringParameters } = event
 
   if (
@@ -70,22 +74,24 @@ const tokenHandler = async (event) => {
   }
 }
 
-export const handler = withMiddleware(tokenHandler)
+export const handler = withMiddleware(token)
 
-const generateLoginUrls = (services) =>
+const generateLoginUrls = (services: Record<string, Authorizer>): Record<string, string> =>
   Object.keys(services).reduce((accumulator, serviceName) => {
     accumulator[serviceName] = authServices[serviceName].generateLoginUrl()
     return accumulator
   }, {} as Record<string, string>)
 
-const getTokenFromAuthCode = async ({ authorizationCode, authorizer }): Promise<AuthToken> => {
+const getTokenFromAuthCode = async (
+  { authorizationCode, authorizer }: { authorizationCode: string; authorizer: string }
+): Promise<AuthToken> => {
   const authService = authServices[authorizer]
   if (!authService) {
     throw new AuthorizerError(`Invalid authorizer: ${authorizer}`)
   }
 
   const authResult = await authService.checkAuthCode(authorizationCode)
-  const userId = await authorizerModel.getUserIdByAuthId(
+  const userId = await getUserIdByAuthId(
     authResult.id,
     authService.getName()
   )
@@ -93,14 +99,16 @@ const getTokenFromAuthCode = async ({ authorizationCode, authorizer }): Promise<
     return generateTokens(userId)
   }
 
-  const newUser = await userModel.createFromAuthResult(authResult)
+  const newUser = await createFromAuthResult(authResult)
   return generateTokens(newUser.id)
 }
 
-const getTokenFromRefreshToken = async ({ refreshToken }): Promise<AuthToken> => {
-  const { userId } = verify(refreshToken)
+const getTokenFromRefreshToken = async (
+  { refreshToken }: { refreshToken: string }
+): Promise<AuthToken> => {
+  const { userId } = verify(refreshToken) as any
 
-  const user = await userModel.getById(userId)
+  const user = await getById(userId, { projection: ['id', 'isActive', 'refreshToken'] })
 
   if (
     !user ||
@@ -119,9 +127,9 @@ const getTokenFromRefreshToken = async ({ refreshToken }): Promise<AuthToken> =>
 const generateTokens = async (userId: string): Promise<AuthToken> => {
   const expiresIn = config.tokenExpiry
   const accessToken = sign({ userId }, { expiresIn })
-  const refreshToken = sign({ userId, accessToken }, { expiresIn: '1y' })
+  const refreshToken = sign({ userId, accessToken }, { expiresIn: 86400 * 365 })
 
-  return userModel.updateRefreshToken(userId, refreshToken)
+  return update(userId, { refreshToken })
     .then(() => ({
       access_token: accessToken,
       token_type: 'Bearer',

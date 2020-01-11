@@ -1,5 +1,9 @@
 jest.unmock('../../lib/errors')
+jest.unmock('../fixtures/response')
 import * as errors from '../../lib/errors'
+
+import { Response } from 'node-fetch'
+import { generateResponse } from '../fixtures/response'
 
 class CustomError extends Error {}
 
@@ -25,33 +29,32 @@ describe('Custom Errors', () => {
 
 describe('handleHttpError', () => {
   test('skips if ok', () => {
-    const response = {
+    const response = generateResponse({
       ok: true,
       json: jest.fn().mockImplementation(() => ({ message: 'OK' })),
       status: 200,
       statusText: 'OK',
-    }
+    })
 
     return errors.handleHttpError(Error)(response)
-      .then(result => {
+      .then((result: Response) => {
         expect(result).toEqual(response)
       })
   })
 
   test('throws if not ok, with CustomError', () => {
     const responseJSON = { message: 'NOT OK' }
-    const response = {
+    const response = generateResponse({
       ok: false,
       json: jest.fn().mockImplementation(() => responseJSON),
       status: 200,
       statusText: 'NOT OK',
-    }
+    })
 
-    expect.assertions(2)
+    expect.assertions(1)
     return errors.handleHttpError(CustomError)(response)
       .catch(e => {
         expect(e).toBeInstanceOf(CustomError)
-        expect(e.response).toEqual(response)
       })
   })
 })

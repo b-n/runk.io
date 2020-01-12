@@ -1,4 +1,3 @@
-import { APIGatewayProxyHandler } from 'aws-lambda'
 import 'source-map-support/register'
 
 import { NotFound, BadInput } from '../lib/errors'
@@ -35,11 +34,11 @@ const league: Handler = async (event) => {
     newLeagueUsers,
     id
   )
-    .then(() => removeLeague)
+    .then(() => removeLeague(userId, id))
 
   return {
     statusCode: 204,
   }
 }
 
-export const handler: APIGatewayProxyHandler = withMiddleware(league)
+export const handler = withMiddleware(league)

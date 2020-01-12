@@ -1,20 +1,15 @@
-import { APIGatewayProxyHandler } from 'aws-lambda'
 import 'source-map-support/register'
 
-import { NotFound } from '../lib/errors'
+import { NotFound, BadInput } from '../lib/errors'
 import { withMiddleware, Handler } from '../lib/middleware'
 
 import { getById } from '../repositories/league'
 
 const league: Handler = async (event) => {
-  // TODO: Need to handle getByIds
-  const { pathParameters, requestContext } = event
-
-  const { userId } = requestContext.authorizer
+  const { pathParameters } = event
 
   const id = pathParameters && pathParameters.id
 
-  console.log(id, userId)
   if (id) {
     const league = await getById(id)
 
@@ -28,11 +23,24 @@ const league: Handler = async (event) => {
     }
   }
 
-  const leagues = await getById(id)
-  return {
-    body: leagues,
-    statusCode: 200,
+  const ids = pathParameters && pathParameters.ids
+
+  if (ids) {
+    // TODO: bulk
+    const recordIds = ids.split(',')
+    const leagues = [await getById(recordIds[0])]
+
+    if (leagues.length === 404) {
+      throw new NotFound()
+    }
+
+    return {
+      body: leagues,
+      statusCode: 200,
+    }
   }
+
+  throw new BadInput('Need to supply ids parameter')
 }
 
-export const handler: APIGatewayProxyHandler = withMiddleware(league)
+export const handler = withMiddleware(league)

@@ -67,6 +67,10 @@ And to deploy(dev/prod stages)
     npm run deploy:dev
     npm run deploy:prod
 
+## Test Coverage
+
+[![codecov](https://codecov.io/gh/nzchicken/runk.io/graphs/icicle.svg?token=ZHxi9bGtsz)](https://codecov.io/gh/nzchicken/runk.io)
+
 ## TODO
 
 Rules: It's still todo until the tests exist

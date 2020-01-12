@@ -13,12 +13,12 @@ interface User {
 }
 
 interface League {
-  id: string
+  id?: string
   displayName: string
-  isActive: boolean
+  isActive?: boolean
   inviteCode: string
-  userCount: number
-  users: Array<LeagueUser>
+  userCount?: number
+  users?: Array<LeagueUser>
 }
 
 interface LeagueUser {

@@ -37,15 +37,7 @@ const league: Handler = async (event) => {
     throw new BadInput('Already joined the league')
   }
 
-  await addUser(
-    {
-      id: userId,
-      role: LeagueRole.member,
-      isActive: true,
-      score: 1000,
-    },
-    id
-  )
+  await addUser(id, userId)
     .then(() => addLeague(userId, id))
 
   return {

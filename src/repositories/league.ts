@@ -1,11 +1,27 @@
+import uuidv4 from 'uuid/v4'
+
 import { put, query, update as updateDynamo, safeProjection } from '../lib/dynamo'
 
-const create = async (league: League): Promise<League> => {
+const create = async (league: League, userId: string): Promise<League> => {
+  const record = {
+    ...league,
+    id: uuidv4(),
+    isActive: true,
+    userCount: 1,
+    users: [
+      {
+        id: userId,
+        isActive: true,
+        role: LeagueRole.admin,
+        score: 1000,
+      },
+    ],
+  }
   return put({
-    Item: league,
+    Item: record,
     TableName: process.env.DB_TABLE_LEAGUE,
   })
-    .then(() => league)
+    .then(() => record)
 }
 
 const update = async (leagueId: string, values: Record<string, any>): Promise<void> => {
@@ -53,14 +69,14 @@ const setUsers = async (users: Array<LeagueUser>, leagueId: string): Promise<voi
     },
     ExpressionAttributeValues: {
       ':users': users,
-      ':userCount': users.filter(user => user.isActive).length,
+      ':userCount': users.filter(user => user.isActive).length + 1,
     },
     TableName: process.env.DB_TABLE_LEAGUE,
   })
     .then(() => null)
 }
 
-const addUser = async (leagueUser: LeagueUser, leagueId: string): Promise<void> => {
+const addUser = async (leagueId: string, userId: string): Promise<void> => {
   return updateDynamo({
     Key: {
       id: leagueId,
@@ -70,7 +86,12 @@ const addUser = async (leagueUser: LeagueUser, leagueId: string): Promise<void> 
       '#users': 'users',
     },
     ExpressionAttributeValues: {
-      ':user': [leagueUser],
+      ':user': [{
+        id: userId,
+        isActive: true,
+        score: 1000,
+        role: LeagueRole.member,
+      }],
       ':increment': 1,
     },
     TableName: process.env.DB_TABLE_LEAGUE,

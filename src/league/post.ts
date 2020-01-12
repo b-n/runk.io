@@ -1,7 +1,6 @@
 import { APIGatewayProxyHandler } from 'aws-lambda'
 import 'source-map-support/register'
 import Joi from '@hapi/joi'
-import uuidv4 from 'uuid/v4'
 
 import { NotFound, BadInput } from '../lib/errors'
 import { validateRequest } from '../lib/validation'
@@ -53,18 +52,8 @@ const league: Handler = async (event) => {
     }
   }
 
-  const leagues = await create({
-    ...newLeague,
-    id: uuidv4(),
-    isActive: true,
-    userCount: 1,
-    users: [{
-      id: userId,
-      role: LeagueRole.admin,
-      isActive: true,
-      score: 1000,
-    }],
-  })
+  const leagues = await create(newLeague, userId)
+
   return {
     body: leagues,
     statusCode: 200,

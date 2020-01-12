@@ -94,12 +94,12 @@ const addLeague = async (userId: string, leagueId: string): Promise<void> => {
     Key: {
       id: userId,
     },
-    UpdateExpression: 'SET #leagues = list_append(#leagues, :leagueId)',
+    UpdateExpression: 'ADD #leagues :leagueId',
     ExpressionAttributeNames: {
       '#leagues': 'leagues',
     },
     ExpressionAttributeValues: {
-      ':league': [leagueId],
+      ':leagueId': [leagueId],
     },
     TableName: process.env.DB_TABLE_USER,
   })
@@ -107,17 +107,16 @@ const addLeague = async (userId: string, leagueId: string): Promise<void> => {
 }
 
 const removeLeague = async (userId: string, leagueId: string): Promise<void> => {
-  // TODO: make this one work
   return updateDynamo({
     Key: {
       id: userId,
     },
-    UpdateExpression: 'SET #leagues = list_append(#leagues, :leagueId)',
+    UpdateExpression: 'DELETE #leagues :leagueId',
     ExpressionAttributeNames: {
       '#leagues': 'leagues',
     },
     ExpressionAttributeValues: {
-      ':league': [leagueId],
+      ':leagueId': [leagueId],
     },
     TableName: process.env.DB_TABLE_USER,
   })

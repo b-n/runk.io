@@ -1,4 +1,3 @@
-import { APIGatewayProxyHandler } from 'aws-lambda'
 import 'source-map-support/register'
 import Joi from '@hapi/joi'
 
@@ -60,4 +59,4 @@ const league: Handler = async (event) => {
   }
 }
 
-export const handler: APIGatewayProxyHandler = withMiddleware(league)
+export const handler = withMiddleware(league)

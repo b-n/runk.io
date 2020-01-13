@@ -129,8 +129,8 @@ test('setUsers', () => {
   ]
 
   return setUsers(
-    users,
-    'abc'
+    'abc',
+    users
   )
     .then(result => {
       expect(result).toEqual(null)

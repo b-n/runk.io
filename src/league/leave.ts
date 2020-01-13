@@ -31,8 +31,8 @@ const league: Handler = async (event) => {
   const newLeagueUsers = league.users.filter(user => user.id !== userId)
 
   await setUsers(
-    newLeagueUsers,
-    id
+    id,
+    newLeagueUsers
   )
     .then(() => removeLeague(userId, id))
 

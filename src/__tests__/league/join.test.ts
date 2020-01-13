@@ -86,11 +86,42 @@ test('ERROR: already joined', () => {
     })
 })
 
-test('success - added to the league', () => {
+test('success - added to the league - inviteCode null', () => {
   spies.validateRequest.mockImplementation(() => ({ inviteCode: null }))
   spies.getById.mockImplementation(() => Promise.resolve({
     displayName: 'testing',
     inviteCode: null,
+    users: [{
+      id: 'zzz',
+      role: LeagueRole.admin,
+      score: 1000,
+      isActive: true,
+    }],
+  }))
+  spies.addUser.mockImplementation(() => Promise.resolve(null))
+  const event = {
+    ...eventHttp,
+    body: JSON.stringify({ inviteCode: null }),
+    requestContext: {
+      ...eventHttp.requestContext,
+      authorizer: { userId: 'abc' },
+    },
+    pathParameters: { id: '123' },
+  }
+
+  return handler(event, null)
+    .then(result => {
+      expect(result.statusCode).toEqual(204)
+      expect(spies.validateRequest).toHaveBeenCalledTimes(1)
+      expect(spies.addUser).toHaveBeenCalledWith('123', 'abc')
+    })
+})
+
+test('success - added to the league - inviteCode matches', () => {
+  spies.validateRequest.mockImplementation(() => ({ inviteCode: 'meow' }))
+  spies.getById.mockImplementation(() => Promise.resolve({
+    displayName: 'testing',
+    inviteCode: 'meow',
     users: [{
       id: 'zzz',
       role: LeagueRole.admin,

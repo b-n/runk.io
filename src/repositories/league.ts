@@ -58,7 +58,7 @@ const getById = async (leagueId: string): Promise<League> => {
     .then(results => results.Count === 0 ? null : results.Items[0] as League)
 }
 
-const setUsers = async (users: Array<LeagueUser>, leagueId: string): Promise<void> => {
+const setUsers = async (leagueId: string, users: Array<LeagueUser>): Promise<void> => {
   return updateDynamo({
     Key: {
       id: leagueId,

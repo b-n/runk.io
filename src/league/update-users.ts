@@ -1,4 +1,3 @@
-import { APIGatewayProxyHandler } from 'aws-lambda'
 import 'source-map-support/register'
 import Joi from '@hapi/joi'
 
@@ -34,12 +33,12 @@ const league: Handler = async (event) => {
     { ErrorClass: BadInput }
   )
 
-  const userMap = usersToMutate.reduce(
+  const userMutateMap = usersToMutate.reduce(
     (a, c) => { a[c.id] = c; return a },
     {} as Record<string, LeagueUserUpdate>
   )
 
-  if (userMap[userId]) {
+  if (userMutateMap[userId]) {
     throw new BadInput('Cannot update yourself with this command')
   }
 
@@ -57,10 +56,10 @@ const league: Handler = async (event) => {
 
   const newUserState = league.users.map(user => ({
     ...user,
-    ...userMap[user.id],
+    ...userMutateMap[user.id],
   }))
 
-  await setUsers(newUserState, id)
+  await setUsers(id, newUserState)
 
   return {
     body: {
@@ -71,4 +70,4 @@ const league: Handler = async (event) => {
   }
 }
 
-export const handler: APIGatewayProxyHandler = withMiddleware(league)
+export const handler = withMiddleware(league)

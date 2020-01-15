@@ -89,11 +89,13 @@ describe('POST: /league/{id}/update-users', () => {
     const existingLeague = {
       ...leagueMock,
       id: '123',
-      users: [{
-        ...leagueRoleMock,
-        id: 'abc',
-        role: LeagueRole.member,
-      }],
+      users: {
+        abc: {
+          ...leagueRoleMock,
+          id: 'abc',
+          role: LeagueRole.member,
+        },
+      },
     }
     spies.validateRequest.mockImplementation(() => [
       {
@@ -122,31 +124,67 @@ describe('POST: /league/{id}/update-users', () => {
       })
   })
 
+  test('ERROR: user not part of league', () => {
+    const existingLeague = {
+      ...leagueMock,
+      id: '123',
+      users: {
+        abc: {
+          ...leagueRoleMock,
+          id: 'abc',
+          role: LeagueRole.admin,
+        },
+      },
+    }
+    spies.validateRequest.mockImplementation(() => [
+      {
+        id: 'bcd',
+        role: LeagueRole.member,
+        isActive: true,
+      },
+    ])
+    spies.getById.mockImplementation(() => Promise.resolve(existingLeague))
+
+    const event = {
+      ...eventHttp,
+      requestContext: {
+        ...eventHttp.requestContext,
+        authorizer: { userId: 'abc' },
+      },
+      body: 'null',
+      pathParameters: { id: '123' },
+    }
+
+    return handler(event, null)
+      .then(result => {
+        expect(result.statusCode).toEqual(400)
+        expect(spies.getById).toHaveBeenCalledWith('123')
+      })
+  })
+
   test('success - updates the users', () => {
     const existingLeague = {
       ...leagueMock,
       id: '123',
-      users: [{
-        ...leagueRoleMock,
-        id: 'abc',
-        role: LeagueRole.admin,
+      users: {
+        abc: {
+          ...leagueRoleMock,
+          id: 'abc',
+          role: LeagueRole.admin,
+        },
+        bcd: {
+          ...leagueRoleMock,
+          id: 'bcd',
+          isActive: false,
+          role: LeagueRole.member,
+        },
       },
-      {
-        ...leagueRoleMock,
-        id: 'bcd',
-        isActive: false,
-        role: LeagueRole.member,
-      }],
     }
     spies.validateRequest.mockImplementation(() => [
       {
         id: 'bcd',
         role: LeagueRole.admin,
         isActive: true,
-      },
-      {
-        id: 'cde',
-        isActive: false,
       },
     ])
     spies.getById.mockImplementation(() => Promise.resolve(existingLeague))
@@ -164,17 +202,20 @@ describe('POST: /league/{id}/update-users', () => {
 
     return handler(event, null)
       .then(result => {
-        const expectedNewUsers = [{
-          ...leagueRoleMock,
-          id: 'abc',
-          isActive: true,
-          role: LeagueRole.admin,
-        }, {
-          ...leagueRoleMock,
-          id: 'bcd',
-          isActive: true,
-          role: LeagueRole.admin,
-        }]
+        const expectedNewUsers = {
+          abc: {
+            ...leagueRoleMock,
+            id: 'abc',
+            isActive: true,
+            role: LeagueRole.admin,
+          },
+          bcd: {
+            ...leagueRoleMock,
+            id: 'bcd',
+            isActive: true,
+            role: LeagueRole.admin,
+          },
+        }
 
         expect(JSON.parse(result.body)).toEqual({
           ...existingLeague,

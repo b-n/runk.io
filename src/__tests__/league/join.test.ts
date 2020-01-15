@@ -16,6 +16,23 @@ const spies = {
   addUser: jest.spyOn(league, 'addUser'),
 }
 
+test('ERROR: request requires body', () => {
+  const event = {
+    ...eventHttp,
+    body: '',
+    requestContext: {
+      ...eventHttp.requestContext,
+      authorizer: { userId: 'abc' },
+    },
+    pathParameters: { id: '123' },
+  }
+
+  return handler(event, null)
+    .then(result => {
+      expect(result.statusCode).toEqual(400)
+    })
+})
+
 test('ERROR: not found', () => {
   spies.validateRequest.mockImplementation(() => ({ inviteCode: null }))
   spies.getById.mockImplementation(() => null)
@@ -64,11 +81,13 @@ test('ERROR: already joined', () => {
   spies.getById.mockImplementation(() => Promise.resolve({
     ...leagueMock,
     inviteCode: null,
-    users: [{
-      ...leagueRoleMock,
-      id: 'abc',
-      role: LeagueRole.admin,
-    }],
+    users: {
+      abc: {
+        ...leagueRoleMock,
+        id: 'abc',
+        role: LeagueRole.admin,
+      },
+    },
   }))
   const event = {
     ...eventHttp,
@@ -92,11 +111,13 @@ test('success - added to the league - inviteCode null', () => {
   spies.getById.mockImplementation(() => Promise.resolve({
     ...leagueMock,
     inviteCode: null,
-    users: [{
-      ...leagueRoleMock,
-      id: 'zzz',
-      role: LeagueRole.admin,
-    }],
+    users: {
+      zzz: {
+        ...leagueRoleMock,
+        id: 'zzz',
+        role: LeagueRole.admin,
+      },
+    },
   }))
   spies.addUser.mockImplementation(() => Promise.resolve(null))
   const event = {
@@ -122,11 +143,13 @@ test('success - added to the league - inviteCode matches', () => {
   spies.getById.mockImplementation(() => Promise.resolve({
     ...leagueMock,
     inviteCode: 'meow',
-    users: [{
-      ...leagueRoleMock,
-      id: 'zzz',
-      role: LeagueRole.admin,
-    }],
+    users: {
+      zzz: {
+        ...leagueRoleMock,
+        id: 'zzz',
+        role: LeagueRole.admin,
+      },
+    },
   }))
   spies.addUser.mockImplementation(() => Promise.resolve(null))
   const event = {

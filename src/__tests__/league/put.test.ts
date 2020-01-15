@@ -5,6 +5,7 @@ import { handler } from '../../league/put'
 
 import eventHttp from '../fixtures/eventHttp.json'
 import leagueMock from '../fixtures/league.json'
+import leagueRoleMock from '../fixtures/leagueRole.json'
 
 import * as validation from '../../lib/validation'
 import * as league from '../../repositories/league'
@@ -56,18 +57,15 @@ describe('POST: league/{id}', () => {
   test('ERROR: can\'t find user', () => {
     spies.validateRequest.mockImplementation(() => (leagueMock))
     spies.getById.mockImplementation(() => Promise.resolve({
+      ...leagueMock,
       id: '123',
-      displayName: 'testing',
-      inviteCode: null,
-      pictureURL: '',
-      users: [{
-        id: 'zzz',
-        pictureURL: '',
-        displayName: '',
-        role: LeagueRole.member,
-        score: 1000,
-        isActive: true,
-      }],
+      users: {
+        zzz: {
+          ...leagueRoleMock,
+          id: 'zzz',
+          role: LeagueRole.admin,
+        },
+      },
     }))
     const event = {
       ...eventHttp,
@@ -90,18 +88,15 @@ describe('POST: league/{id}', () => {
   test('ERROR: user is not admin', () => {
     spies.validateRequest.mockImplementation(() => (leagueMock))
     spies.getById.mockImplementation(() => Promise.resolve({
+      ...leagueMock,
       id: '123',
-      displayName: 'testing',
-      pictureURL: '',
-      inviteCode: null,
-      users: [{
-        id: 'abc',
-        pictureURL: '',
-        displayName: '',
-        role: LeagueRole.member,
-        score: 1000,
-        isActive: true,
-      }],
+      users: {
+        abc: {
+          ...leagueRoleMock,
+          id: 'abc',
+          role: LeagueRole.member,
+        },
+      },
     }))
     const event = {
       ...eventHttp,
@@ -124,18 +119,15 @@ describe('POST: league/{id}', () => {
   test('success - updates the league', () => {
     spies.validateRequest.mockImplementation(() => (leagueMock))
     spies.getById.mockImplementation(() => Promise.resolve({
+      ...leagueMock,
       id: '123',
-      displayName: 'testing',
-      pictureURL: '',
-      inviteCode: null,
-      users: [{
-        id: 'abc',
-        displayName: '',
-        pictureURL: '',
-        role: LeagueRole.admin,
-        score: 1000,
-        isActive: true,
-      }],
+      users: {
+        abc: {
+          ...leagueRoleMock,
+          id: 'abc',
+          role: LeagueRole.admin,
+        },
+      },
     }))
     spies.update.mockImplementation(() => Promise.resolve(null))
     const event = {

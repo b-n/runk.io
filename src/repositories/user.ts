@@ -89,17 +89,19 @@ const update = async (userId: string, values: Record<string, any>): Promise<void
     .then(() => null)
 }
 
-const addLeague = async (userId: string, leagueId: string): Promise<void> => {
+const addLeague = async (userId: string, league: League): Promise<void> => {
+  const { id, displayName, pictureURL } = league
   return updateDynamo({
     Key: {
       id: userId,
     },
-    UpdateExpression: 'ADD #leagues :leagueId',
+    UpdateExpression: 'SET #leagues.#leagueId = :league',
     ExpressionAttributeNames: {
       '#leagues': 'leagues',
+      '#leagueId': league.id,
     },
     ExpressionAttributeValues: {
-      ':leagueId': [leagueId],
+      ':league': { id, displayName, pictureURL },
     },
     TableName: process.env.DB_TABLE_USER,
   })
@@ -111,12 +113,12 @@ const removeLeague = async (userId: string, leagueId: string): Promise<void> => 
     Key: {
       id: userId,
     },
-    UpdateExpression: 'DELETE #leagues :leagueId',
+    UpdateExpression: 'REMOVE #leagues.:leagueId',
     ExpressionAttributeNames: {
       '#leagues': 'leagues',
     },
     ExpressionAttributeValues: {
-      ':leagueId': [leagueId],
+      ':leagueId': leagueId,
     },
     TableName: process.env.DB_TABLE_USER,
   })

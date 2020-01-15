@@ -2,6 +2,8 @@ jest.unmock('../../repositories/user')
 jest.unmock('uuid/v4')
 import { createFromAuthResult, getById, update, addLeague, removeLeague } from '../../repositories/user'
 
+import leagueMock from '../fixtures/league.json'
+
 import * as dynamo from '../../lib/dynamo'
 
 const spies = {
@@ -110,18 +112,26 @@ test('addLeague', () => {
 
   return addLeague(
     'abc',
-    '123'
+    {
+      ...leagueMock,
+      id: '123',
+    }
   )
     .then(result => {
       expect(result).toEqual(null)
       expect(spies.update).toHaveBeenCalledTimes(1)
       expect(spies.update).toHaveBeenCalledWith(expect.objectContaining({
-        UpdateExpression: 'ADD #leagues :leagueId',
+        UpdateExpression: 'SET #leagues.#leagueId = :league',
         ExpressionAttributeNames: {
           '#leagues': 'leagues',
+          '#leagueId': '123',
         },
         ExpressionAttributeValues: {
-          ':leagueId': ['123'],
+          ':league': {
+            id: '123',
+            displayName: '',
+            pictureURL: '',
+          },
         },
       }))
     })
@@ -138,12 +148,12 @@ test('removeLeague', () => {
       expect(result).toEqual(null)
       expect(spies.update).toHaveBeenCalledTimes(1)
       expect(spies.update).toHaveBeenCalledWith(expect.objectContaining({
-        UpdateExpression: 'DELETE #leagues :leagueId',
+        UpdateExpression: 'REMOVE #leagues.:leagueId',
         ExpressionAttributeNames: {
           '#leagues': 'leagues',
         },
         ExpressionAttributeValues: {
-          ':leagueId': ['123'],
+          ':leagueId': '123',
         },
       }))
     })

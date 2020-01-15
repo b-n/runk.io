@@ -14,8 +14,12 @@ const league: Handler = async (event) => {
   const id = pathParameters.id
   const { userId } = event.requestContext.authorizer
 
+  if (!body) {
+    throw new BadInput('Request requires a body')
+  }
+
   const suppliedInviteCode = validateRequest(
-    body ? JSON.parse(body) : {},
+    JSON.parse(body),
     Joi.object({
       inviteCode: Joi.string().allow(null).default(null),
     }),
@@ -32,12 +36,12 @@ const league: Handler = async (event) => {
     throw new BadInput('inviteCode does not match the league')
   }
 
-  if (league.users.find(user => user.id === userId)) {
+  if (league.users[userId]) {
     throw new BadInput('Already joined the league')
   }
 
   await addUser(id, userId)
-    .then(() => addLeague(userId, id))
+    .then(() => addLeague(userId, league))
 
   return {
     statusCode: 204,

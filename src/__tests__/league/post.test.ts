@@ -14,8 +14,9 @@ import * as league from '../../repositories/league'
 const spies = {
   validateRequest: jest.spyOn(validation, 'validateRequest'),
   create: jest.spyOn(league, 'create'),
-  getById: jest.spyOn(user, 'getById'),
   update: jest.spyOn(league, 'update'),
+  getById: jest.spyOn(user, 'getById'),
+  addLeague: jest.spyOn(user, 'addLeague'),
 }
 
 describe('POST: league', () => {
@@ -36,11 +37,14 @@ describe('POST: league', () => {
   })
 
   test('success - creates new league', () => {
-    spies.validateRequest.mockImplementation(() => (leagueMock))
+    spies.validateRequest.mockImplementation(() => ({
+      displayName: 'testing',
+    }))
     spies.getById.mockImplementation(() => Promise.resolve({
       ...userMock,
     }))
-    spies.create.mockImplementation(() => Promise.resolve(null))
+    spies.create.mockImplementation(() => Promise.resolve(leagueMock))
+    spies.addLeague.mockImplementation(() => Promise.resolve(null))
     const event = {
       ...eventHttp,
       requestContext: {
@@ -52,6 +56,7 @@ describe('POST: league', () => {
 
     return handler(event, null)
       .then(result => {
+        expect(JSON.parse(result.body)).toEqual(leagueMock)
         expect(result.statusCode).toEqual(200)
         expect(spies.validateRequest).toHaveBeenCalledTimes(1)
         expect(spies.create).toHaveBeenCalledTimes(1)

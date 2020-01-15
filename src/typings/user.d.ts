@@ -9,7 +9,7 @@ interface User {
   authorizers: {
     google?: UserAuthorizer
   }
-  leagues: Array<string>
+  leagues: Record<string, UserLeague>
 }
 
 interface UserLeague {

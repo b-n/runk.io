@@ -33,13 +33,13 @@ const league: Handler = async (event) => {
     throw new NotFound()
   }
 
-  const leagueUsers = existingLeague.users.filter(user => user.id === userId)
+  const leagueUser = existingLeague.users[userId]
 
-  if (leagueUsers.length === 0) {
+  if (!leagueUser) {
     throw new NotFound()
   }
 
-  if (leagueUsers[0].role !== LeagueRole.admin) {
+  if (leagueUser.role !== LeagueRole.admin) {
     throw new BadInput('User is not an admin of league')
   }
 

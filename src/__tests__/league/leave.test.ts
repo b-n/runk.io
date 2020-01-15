@@ -11,8 +11,8 @@ import leagueRoleMock from '../fixtures/leagueRole.json'
 
 const spies = {
   getById: jest.spyOn(league, 'getById'),
-  setUsers: jest.spyOn(league, 'setUsers'),
   removeLeague: jest.spyOn(user, 'removeLeague'),
+  removeUser: jest.spyOn(league, 'removeUser'),
 }
 
 test('ERROR: not found', () => {
@@ -36,11 +36,13 @@ test('ERROR: not found', () => {
 test('ERROR: need to be part of the league', () => {
   spies.getById.mockImplementation(() => Promise.resolve({
     ...leagueMock,
-    users: [{
-      ...leagueRoleMock,
-      id: 'zzz',
-      role: LeagueRole.admin,
-    }],
+    users: {
+      zzz: {
+        ...leagueRoleMock,
+        id: 'zzz',
+        role: LeagueRole.admin,
+      },
+    },
   }))
   const event = {
     ...eventHttp,
@@ -61,15 +63,18 @@ test('ERROR: need to be part of the league', () => {
 test('ERROR: last admin cannot leave', () => {
   spies.getById.mockImplementation(() => Promise.resolve({
     ...leagueMock,
-    users: [{
-      ...leagueRoleMock,
-      id: 'abc',
-      role: LeagueRole.admin,
-    }, {
-      ...leagueRoleMock,
-      id: 'bcd',
-      role: LeagueRole.member,
-    }],
+    users: {
+      abc: {
+        ...leagueRoleMock,
+        id: 'abc',
+        role: LeagueRole.admin,
+      },
+      bcd: {
+        ...leagueRoleMock,
+        id: 'bcd',
+        role: LeagueRole.member,
+      },
+    },
   }))
   const event = {
     ...eventHttp,
@@ -91,17 +96,21 @@ test('ERROR: last admin cannot leave', () => {
 test('success - added to the league', () => {
   spies.getById.mockImplementation(() => Promise.resolve({
     ...leagueMock,
-    users: [{
-      ...leagueRoleMock,
-      id: 'abc',
-      role: LeagueRole.admin,
-    }, {
-      ...leagueRoleMock,
-      id: 'bcd',
-      role: LeagueRole.admin,
-    }],
+    users: {
+      abc: {
+        ...leagueRoleMock,
+        id: 'abc',
+        role: LeagueRole.admin,
+      },
+      bcd: {
+        ...leagueRoleMock,
+        id: 'bcd',
+        role: LeagueRole.admin,
+      },
+    },
   }))
-  spies.setUsers.mockImplementation(() => Promise.resolve(null))
+  spies.removeUser.mockImplementation(() => Promise.resolve(null))
+  spies.removeLeague.mockImplementation(() => Promise.resolve(null))
   const event = {
     ...eventHttp,
     body: JSON.stringify({ inviteCode: null }),
@@ -116,6 +125,7 @@ test('success - added to the league', () => {
     .then(result => {
       expect(result.statusCode).toEqual(204)
       expect(spies.getById).toHaveBeenCalledWith('123')
+      expect(spies.removeUser).toHaveBeenCalledWith('123', 'abc')
       expect(spies.removeLeague).toHaveBeenCalledWith('abc', '123')
     })
 })

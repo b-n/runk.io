@@ -5,7 +5,7 @@ import { BadInput } from '../lib/errors'
 import { validateRequest } from '../lib/validation'
 import { withMiddleware, Handler } from '../lib/middleware'
 
-import { getById as getUserById } from '../repositories/user'
+import { getById as getUserById, addLeague } from '../repositories/user'
 import { create } from '../repositories/league'
 
 const league: Handler = async (event) => {
@@ -29,10 +29,14 @@ const league: Handler = async (event) => {
 
   const user = await getUserById(userId, null)
 
-  const leagues = await create(newLeague, user)
+  const league = await create(newLeague, user)
+    .then(league =>
+      addLeague(userId, league)
+        .then(() => league)
+    )
 
   return {
-    body: leagues,
+    body: league,
     statusCode: 200,
   }
 }

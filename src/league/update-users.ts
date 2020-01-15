@@ -48,16 +48,24 @@ const league: Handler = async (event) => {
     throw new NotFound()
   }
 
-  const leagueUsers = league.users.filter(user => user.id === userId)
+  const leagueUser = league.users[userId]
 
-  if (leagueUsers.length === 0 || leagueUsers[0].role !== LeagueRole.admin) {
+  if (!leagueUser || leagueUser.role !== LeagueRole.admin) {
     throw new BadInput('You need to be part of the league and an admin to change users')
   }
 
-  const newUserState = league.users.map(user => ({
-    ...user,
-    ...userMutateMap[user.id],
-  }))
+  const newUserState = usersToMutate.reduce((a, c) => {
+    const { id, isActive, role } = c
+    if (!a[id]) {
+      throw new BadInput(`User ${id} does not exist in this league`)
+    }
+    a[id] = {
+      ...a[id],
+      isActive,
+      role,
+    }
+    return a
+  }, league.users)
 
   await setUsers(id, newUserState)
 

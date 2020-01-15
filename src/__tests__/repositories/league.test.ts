@@ -1,6 +1,6 @@
 jest.unmock('../../repositories/league')
 jest.unmock('uuid/v4')
-import { create, getById, update, addUser, setUsers } from '../../repositories/league'
+import { create, getById, update, addUser, removeUser, setUsers } from '../../repositories/league'
 
 import * as dynamo from '../../lib/dynamo'
 
@@ -33,14 +33,16 @@ test('create', () => {
         inviteCode: null,
         id: expect.any(String),
         userCount: 1,
-        users: expect.arrayContaining([{
-          id: 'abc',
-          displayName: userMock.displayName,
-          pictureURL: userMock.pictureURL,
-          score: 1000,
-          role: 'admin',
-          isActive: true,
-        }]),
+        users: {
+          abc: {
+            id: 'abc',
+            displayName: userMock.displayName,
+            pictureURL: userMock.pictureURL,
+            score: 1000,
+            role: 'admin',
+            isActive: true,
+          },
+        },
       })
       expect(result).toEqual(expectedObject)
       expect(spies.put).toHaveBeenCalledTimes(1)
@@ -107,24 +109,51 @@ test('addUser', () => {
 
   return addUser(
     '123',
+    {
+      ...userMock,
+      id: 'abc',
+    }
+  )
+    .then(result => {
+      expect(result).toEqual(null)
+      expect(spies.update).toHaveBeenCalledTimes(1)
+      expect(spies.update).toHaveBeenCalledWith(expect.objectContaining({
+        UpdateExpression: 'SET #users.#userId = :user ADD userCount = :increment',
+        ExpressionAttributeNames: {
+          '#users': 'users',
+          '#userId': 'abc',
+        },
+        ExpressionAttributeValues: {
+          ':increment': 1,
+          ':user': {
+            ...leagueRoleMock,
+            id: 'abc',
+            displayName: '',
+            pictureURL: '',
+          },
+        },
+      }))
+    })
+})
+
+test('removeUser', () => {
+  spies.update.mockImplementation(() => Promise.resolve(null))
+
+  return removeUser( 
+    '123',
     'abc'
   )
     .then(result => {
       expect(result).toEqual(null)
       expect(spies.update).toHaveBeenCalledTimes(1)
       expect(spies.update).toHaveBeenCalledWith(expect.objectContaining({
-        UpdateExpression: 'SET userCount = userCount + :increment,#users = list_append(#users, :user)',
+        UpdateExpression: 'REMOVE #users.:userId ADD userCount = :decrement',
         ExpressionAttributeNames: {
           '#users': 'users',
         },
         ExpressionAttributeValues: {
-          ':increment': 1,
-          ':user': [{
-            id: 'abc',
-            score: 1000,
-            isActive: true,
-            role: 'member',
-          }],
+          ':decrement': -1,
+          ':userId': 'abc',
         },
       }))
     })
@@ -132,10 +161,10 @@ test('addUser', () => {
 
 test('setUsers', () => {
   spies.update.mockImplementation(() => Promise.resolve(null))
-  const users = [
-    { ...leagueRoleMock, id: 'abc', score: 1000, isActive: false, role: LeagueRole.member },
-    { ...leagueRoleMock, id: 'bcd', score: 1005, isActive: true, role: LeagueRole.admin },
-  ]
+  const users = {
+    abc: { ...leagueRoleMock, id: 'abc', score: 1000, isActive: false, role: LeagueRole.member },
+    bcd: { ...leagueRoleMock, id: 'bcd', score: 1005, isActive: true, role: LeagueRole.admin },
+  }
 
   return setUsers(
     'abc',

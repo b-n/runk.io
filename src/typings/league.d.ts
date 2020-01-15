@@ -5,7 +5,9 @@ interface League {
   isActive?: boolean
   inviteCode: string
   userCount?: number
-  users?: Array<LeagueUser>
+  users?: {
+    [key: string]: LeagueUser
+  }
 }
 
 interface LeagueUser {

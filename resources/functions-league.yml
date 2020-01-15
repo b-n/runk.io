@@ -3,11 +3,6 @@ league-get:
   events:
     - http:
         method: get
-        path: league
-        cors: true
-        authorizer: auth
-    - http:
-        method: get
         path: league/{id}
         cors: true
         authorizer: auth
@@ -17,11 +12,6 @@ league-post:
     - http:
         method: post
         path: league
-        cors: true
-        authorizer: auth
-    - http:
-        method: post
-        path: league/{id}
         cors: true
         authorizer: auth
 league-put:

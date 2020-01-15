@@ -7,6 +7,8 @@ import * as validation from '../../lib/validation'
 import * as league from '../../repositories/league'
 
 import eventHttp from '../fixtures/eventHttp.json'
+import leagueMock from '../fixtures/league.json'
+import leagueRoleMock from '../fixtures/leagueRole.json'
 
 const spies = {
   validateRequest: jest.spyOn(validation, 'validateRequest'),
@@ -37,7 +39,7 @@ test('ERROR: not found', () => {
 test('ERROR: inviteCode required', () => {
   spies.validateRequest.mockImplementation(() => ({ inviteCode: null }))
   spies.getById.mockImplementation(() => Promise.resolve({
-    displayName: 'testing',
+    ...leagueMock,
     inviteCode: '123',
   }))
   const event = {
@@ -60,13 +62,12 @@ test('ERROR: inviteCode required', () => {
 test('ERROR: already joined', () => {
   spies.validateRequest.mockImplementation(() => ({ inviteCode: null }))
   spies.getById.mockImplementation(() => Promise.resolve({
-    displayName: 'testing',
+    ...leagueMock,
     inviteCode: null,
     users: [{
+      ...leagueRoleMock,
       id: 'abc',
       role: LeagueRole.admin,
-      score: 1000,
-      isActive: true,
     }],
   }))
   const event = {
@@ -89,13 +90,12 @@ test('ERROR: already joined', () => {
 test('success - added to the league - inviteCode null', () => {
   spies.validateRequest.mockImplementation(() => ({ inviteCode: null }))
   spies.getById.mockImplementation(() => Promise.resolve({
-    displayName: 'testing',
+    ...leagueMock,
     inviteCode: null,
     users: [{
+      ...leagueRoleMock,
       id: 'zzz',
       role: LeagueRole.admin,
-      score: 1000,
-      isActive: true,
     }],
   }))
   spies.addUser.mockImplementation(() => Promise.resolve(null))
@@ -120,13 +120,12 @@ test('success - added to the league - inviteCode null', () => {
 test('success - added to the league - inviteCode matches', () => {
   spies.validateRequest.mockImplementation(() => ({ inviteCode: 'meow' }))
   spies.getById.mockImplementation(() => Promise.resolve({
-    displayName: 'testing',
+    ...leagueMock,
     inviteCode: 'meow',
     users: [{
+      ...leagueRoleMock,
       id: 'zzz',
       role: LeagueRole.admin,
-      score: 1000,
-      isActive: true,
     }],
   }))
   spies.addUser.mockImplementation(() => Promise.resolve(null))

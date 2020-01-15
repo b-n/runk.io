@@ -2,7 +2,8 @@ import uuidv4 from 'uuid/v4'
 
 import { put, query, update as updateDynamo, safeProjection } from '../lib/dynamo'
 
-const create = async (league: League, userId: string): Promise<League> => {
+const create = async (league: League, user: User): Promise<League> => {
+  const { id, displayName, pictureURL } = user
   const record = {
     ...league,
     id: uuidv4(),
@@ -10,7 +11,9 @@ const create = async (league: League, userId: string): Promise<League> => {
     userCount: 1,
     users: [
       {
-        id: userId,
+        id,
+        displayName,
+        pictureURL,
         isActive: true,
         role: LeagueRole.admin,
         score: 1000,

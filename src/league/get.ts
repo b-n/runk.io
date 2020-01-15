@@ -10,37 +10,20 @@ const league: Handler = async (event) => {
 
   const id = pathParameters && pathParameters.id
 
-  if (id) {
-    const league = await getById(id)
-
-    if (!league) {
-      throw new NotFound()
-    }
-
-    return {
-      body: league,
-      statusCode: 200,
-    }
+  if (!id) {
+    throw new BadInput('Need to supply ids parameter')
   }
 
-  const ids = pathParameters && pathParameters.ids
+  const league = await getById(id)
 
-  if (ids) {
-    // TODO: bulk
-    const recordIds = ids.split(',')
-    const leagues = [await getById(recordIds[0])]
-
-    if (leagues.length === 404) {
-      throw new NotFound()
-    }
-
-    return {
-      body: leagues,
-      statusCode: 200,
-    }
+  if (!league) {
+    throw new NotFound()
   }
 
-  throw new BadInput('Need to supply ids parameter')
+  return {
+    body: league,
+    statusCode: 200,
+  }
 }
 
 export const handler = withMiddleware(league)

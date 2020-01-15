@@ -4,6 +4,8 @@ jest.unmock('@hapi/joi')
 import { handler } from '../../league/update-users'
 
 import eventHttp from '../fixtures/eventHttp.json'
+import leagueMock from '../fixtures/league.json'
+import leagueRoleMock from '../fixtures/leagueRole.json'
 
 import * as validation from '../../lib/validation'
 import * as league from '../../repositories/league'
@@ -85,14 +87,12 @@ describe('POST: /league/{id}/update-users', () => {
 
   test('ERROR: need to be admin', () => {
     const existingLeague = {
+      ...leagueMock,
       id: '123',
-      displayName: 'testing',
-      inviteCode: 'test',
       users: [{
+        ...leagueRoleMock,
         id: 'abc',
-        isActive: true,
         role: LeagueRole.member,
-        score: 1000,
       }],
     }
     spies.validateRequest.mockImplementation(() => [
@@ -124,20 +124,18 @@ describe('POST: /league/{id}/update-users', () => {
 
   test('success - updates the users', () => {
     const existingLeague = {
+      ...leagueMock,
       id: '123',
-      displayName: 'testing',
-      inviteCode: 'test',
       users: [{
+        ...leagueRoleMock,
         id: 'abc',
-        isActive: true,
         role: LeagueRole.admin,
-        score: 1000,
       },
       {
+        ...leagueRoleMock,
         id: 'bcd',
         isActive: false,
         role: LeagueRole.member,
-        score: 1000,
       }],
     }
     spies.validateRequest.mockImplementation(() => [
@@ -167,15 +165,15 @@ describe('POST: /league/{id}/update-users', () => {
     return handler(event, null)
       .then(result => {
         const expectedNewUsers = [{
+          ...leagueRoleMock,
           id: 'abc',
           isActive: true,
           role: LeagueRole.admin,
-          score: 1000,
         }, {
+          ...leagueRoleMock,
           id: 'bcd',
           isActive: true,
           role: LeagueRole.admin,
-          score: 1000,
         }]
 
         expect(JSON.parse(result.body)).toEqual({

@@ -4,6 +4,9 @@ import { create, getById, update, addUser, setUsers } from '../../repositories/l
 
 import * as dynamo from '../../lib/dynamo'
 
+import userMock from '../fixtures/user.json'
+import leagueRoleMock from '../fixtures/leagueRole.json'
+
 const spies = {
   put: jest.spyOn(dynamo, 'put'),
   query: jest.spyOn(dynamo, 'query'),
@@ -16,9 +19,13 @@ test('create', () => {
   return create(
     {
       displayName: 'testing league',
+      pictureURL: 'wat up',
       inviteCode: null,
     },
-    'abc'
+    {
+      ...userMock,
+      id: 'abc',
+    }
   )
     .then(result => {
       const expectedObject = expect.objectContaining({
@@ -28,6 +35,8 @@ test('create', () => {
         userCount: 1,
         users: expect.arrayContaining([{
           id: 'abc',
+          displayName: userMock.displayName,
+          pictureURL: userMock.pictureURL,
           score: 1000,
           role: 'admin',
           isActive: true,
@@ -124,8 +133,8 @@ test('addUser', () => {
 test('setUsers', () => {
   spies.update.mockImplementation(() => Promise.resolve(null))
   const users = [
-    { id: 'abc', score: 1000, isActive: false, role: LeagueRole.member },
-    { id: 'bcd', score: 1005, isActive: true, role: LeagueRole.admin },
+    { ...leagueRoleMock, id: 'abc', score: 1000, isActive: false, role: LeagueRole.member },
+    { ...leagueRoleMock, id: 'bcd', score: 1005, isActive: true, role: LeagueRole.admin },
   ]
 
   return setUsers(

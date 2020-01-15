@@ -5,16 +5,27 @@ import { handler } from '../../league/get'
 import * as league from '../../repositories/league'
 
 import eventHttp from '../fixtures/eventHttp.json'
+import leagueMock from '../fixtures/league.json'
 
 const spies = {
   getById: jest.spyOn(league, 'getById'),
 }
 
-describe('GET: league', () => {
-  // TODO: this
-})
-
 describe('GET: league/{id}', () => {
+  test('ERROR: id param needs a value', () => {
+    const event = {
+      ...eventHttp,
+      pathParameters: {
+        id: '',
+      },
+    }
+
+    return handler(event, null)
+      .then(result => {
+        expect(result.statusCode).toEqual(400)
+      })
+  })
+
   test('ERROR: no such id', () => {
     spies.getById.mockImplementation(() => Promise.resolve(null))
     const event = {
@@ -31,10 +42,7 @@ describe('GET: league/{id}', () => {
   })
 
   test('success - can find league', () => {
-    spies.getById.mockImplementation(() => Promise.resolve({
-      displayName: 'testing League',
-      inviteCode: '123',
-    }))
+    spies.getById.mockImplementation(() => Promise.resolve(leagueMock))
     const event = {
       ...eventHttp,
       pathParameters: {
@@ -44,6 +52,7 @@ describe('GET: league/{id}', () => {
 
     return handler(event, null)
       .then(result => {
+        expect(JSON.parse(result.body)).toEqual(leagueMock)
         expect(result.statusCode).toEqual(200)
       })
   })

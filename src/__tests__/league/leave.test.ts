@@ -6,6 +6,8 @@ import * as league from '../../repositories/league'
 import * as user from '../../repositories/user'
 
 import eventHttp from '../fixtures/eventHttp.json'
+import leagueMock from '../fixtures/league.json'
+import leagueRoleMock from '../fixtures/leagueRole.json'
 
 const spies = {
   getById: jest.spyOn(league, 'getById'),
@@ -33,13 +35,11 @@ test('ERROR: not found', () => {
 
 test('ERROR: need to be part of the league', () => {
   spies.getById.mockImplementation(() => Promise.resolve({
-    displayName: 'testing',
-    inviteCode: '123',
+    ...leagueMock,
     users: [{
+      ...leagueRoleMock,
       id: 'zzz',
-      isActive: true,
       role: LeagueRole.admin,
-      score: 1000,
     }],
   }))
   const event = {
@@ -60,18 +60,15 @@ test('ERROR: need to be part of the league', () => {
 
 test('ERROR: last admin cannot leave', () => {
   spies.getById.mockImplementation(() => Promise.resolve({
-    displayName: 'testing',
-    inviteCode: null,
+    ...leagueMock,
     users: [{
+      ...leagueRoleMock,
       id: 'abc',
       role: LeagueRole.admin,
-      score: 1000,
-      isActive: true,
     }, {
+      ...leagueRoleMock,
       id: 'bcd',
       role: LeagueRole.member,
-      score: 1000,
-      isActive: true,
     }],
   }))
   const event = {
@@ -93,18 +90,15 @@ test('ERROR: last admin cannot leave', () => {
 
 test('success - added to the league', () => {
   spies.getById.mockImplementation(() => Promise.resolve({
-    displayName: 'testing',
-    inviteCode: null,
+    ...leagueMock,
     users: [{
+      ...leagueRoleMock,
       id: 'abc',
       role: LeagueRole.admin,
-      score: 1000,
-      isActive: true,
     }, {
+      ...leagueRoleMock,
       id: 'bcd',
       role: LeagueRole.admin,
-      score: 1000,
-      isActive: true,
     }],
   }))
   spies.setUsers.mockImplementation(() => Promise.resolve(null))

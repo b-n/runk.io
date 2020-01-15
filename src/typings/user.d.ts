@@ -12,25 +12,10 @@ interface User {
   leagues: Array<string>
 }
 
-interface League {
-  id?: string
+interface UserLeague {
+  id: string
   displayName: string
-  isActive?: boolean
-  inviteCode: string
-  userCount?: number
-  users?: Array<LeagueUser>
-}
-
-interface LeagueUser {
-  id?: string
-  score: number
-  isActive: boolean
-  role: LeagueRole
-}
-
-declare const enum LeagueRole {
-  member = 'member',
-  admin = 'admin',
+  pictureURL: string
 }
 
 interface AuthToken {

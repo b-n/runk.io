@@ -148,12 +148,10 @@ test('removeLeague', () => {
       expect(result).toEqual(null)
       expect(spies.update).toHaveBeenCalledTimes(1)
       expect(spies.update).toHaveBeenCalledWith(expect.objectContaining({
-        UpdateExpression: 'REMOVE #leagues.:leagueId',
+        UpdateExpression: 'REMOVE #leagues.#leagueId',
         ExpressionAttributeNames: {
           '#leagues': 'leagues',
-        },
-        ExpressionAttributeValues: {
-          ':leagueId': '123',
+          '#leagueId': '123',
         },
       }))
     })

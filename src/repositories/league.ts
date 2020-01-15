@@ -47,7 +47,7 @@ const update = async (leagueId: string, values: Record<string, any>): Promise<vo
 }
 
 const getById = async (leagueId: string): Promise<League> => {
-  const { ProjectionExpression, ExpressionAttributeNames } = safeProjection(['id', 'isActive', 'name', 'inviteCode', 'userCount', 'users'])
+  const { ProjectionExpression, ExpressionAttributeNames } = safeProjection(['id', 'isActive', 'displayName', 'inviteCode', 'userCount', 'users'])
 
   return query({
     KeyConditionExpression: 'id = :leagueId',
@@ -85,7 +85,7 @@ const addUser = async (leagueId: string, user: User): Promise<void> => {
     Key: {
       id: leagueId,
     },
-    UpdateExpression: 'SET #users.#userId = :user ADD userCount = :increment',
+    UpdateExpression: 'SET #users.#userId = :user ADD userCount :increment',
     ExpressionAttributeNames: {
       '#users': 'users',
       '#userId': id,
@@ -111,12 +111,12 @@ const removeUser = async (leagueId: string, userId: string): Promise<void> => {
     Key: {
       id: leagueId,
     },
-    UpdateExpression: 'REMOVE #users.:userId ADD userCount = :decrement',
+    UpdateExpression: 'REMOVE #users.#userId ADD userCount :decrement',
     ExpressionAttributeNames: {
       '#users': 'users',
+      '#userId': userId,
     },
     ExpressionAttributeValues: {
-      ':userId': userId,
       ':decrement': -1,
     },
     TableName: process.env.DB_TABLE_LEAGUE,

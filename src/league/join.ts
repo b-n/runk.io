@@ -6,7 +6,7 @@ import { validateRequest } from '../lib/validation'
 import { withMiddleware, Handler } from '../lib/middleware'
 
 import { getById, addUser } from '../repositories/league'
-import { addLeague } from '../repositories/user'
+import { getById as getUserById, addLeague } from '../repositories/user'
 
 const league: Handler = async (event) => {
   const { pathParameters, body } = event
@@ -40,7 +40,9 @@ const league: Handler = async (event) => {
     throw new BadInput('Already joined the league')
   }
 
-  await addUser(id, userId)
+  const user = await getUserById(userId, {})
+
+  await addUser(id, user)
     .then(() => addLeague(userId, league))
 
   return {

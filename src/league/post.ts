@@ -19,7 +19,7 @@ const league: Handler = async (event) => {
     JSON.parse(body),
     Joi.object({
       id: Joi.string().disallow(),
-      name: Joi.string().min(1).required(),
+      displayName: Joi.string().min(1).required(),
       inviteCode: Joi.string().allow(null).default(null),
     }),
     { ErrorClass: BadInput }
@@ -27,7 +27,7 @@ const league: Handler = async (event) => {
 
   const { userId } = event.requestContext.authorizer
 
-  const user = await getUserById(userId, null)
+  const user = await getUserById(userId, {})
 
   const league = await create(newLeague, user)
     .then(league =>

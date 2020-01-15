@@ -17,7 +17,7 @@ const league: Handler = async (event) => {
   const newLeague: League = validateRequest(
     JSON.parse(body),
     Joi.object({
-      name: Joi.string().min(1).required(),
+      displayName: Joi.string().min(1).required(),
       inviteCode: Joi.string().allow(null).default(null),
     }),
     { ErrorClass: BadInput }

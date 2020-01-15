@@ -1,6 +1,6 @@
 import uuidv4 from 'uuid/v4'
 
-import { put, query, update as updateDynamo, createSet, safeProjection } from '../lib/dynamo'
+import { put, query, update as updateDynamo, safeProjection } from '../lib/dynamo'
 
 import { create } from '../repositories/authorizer'
 
@@ -34,12 +34,12 @@ const createFromAuthResult = async (record: AuthResult): Promise<User> => {
         retrievedDate: new Date().toISOString(),
       },
     },
+    leagues: {},
   } as User
 
   return put({
     Item: {
       ...newUser,
-      leagues: createSet(['default']),
     },
     TableName: process.env.DB_TABLE_USER,
   })
@@ -54,7 +54,7 @@ const getById = async (
   const { ProjectionExpression, ExpressionAttributeNames } = safeProjection(
     projection ||
     sameUser
-      ? ['id', 'displayName', 'email', 'pictureURL', 'locale']
+      ? ['id', 'displayName', 'email', 'pictureURL', 'locale', 'leagues']
       : ['id', 'displayName', 'pictureURL']
   )
 
@@ -113,12 +113,10 @@ const removeLeague = async (userId: string, leagueId: string): Promise<void> => 
     Key: {
       id: userId,
     },
-    UpdateExpression: 'REMOVE #leagues.:leagueId',
+    UpdateExpression: 'REMOVE #leagues.#leagueId',
     ExpressionAttributeNames: {
       '#leagues': 'leagues',
-    },
-    ExpressionAttributeValues: {
-      ':leagueId': leagueId,
+      '#leagueId': leagueId,
     },
     TableName: process.env.DB_TABLE_USER,
   })

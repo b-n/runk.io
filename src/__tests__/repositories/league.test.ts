@@ -118,7 +118,7 @@ test('addUser', () => {
       expect(result).toEqual(null)
       expect(spies.update).toHaveBeenCalledTimes(1)
       expect(spies.update).toHaveBeenCalledWith(expect.objectContaining({
-        UpdateExpression: 'SET #users.#userId = :user ADD userCount = :increment',
+        UpdateExpression: 'SET #users.#userId = :user ADD userCount :increment',
         ExpressionAttributeNames: {
           '#users': 'users',
           '#userId': 'abc',
@@ -139,7 +139,7 @@ test('addUser', () => {
 test('removeUser', () => {
   spies.update.mockImplementation(() => Promise.resolve(null))
 
-  return removeUser( 
+  return removeUser(
     '123',
     'abc'
   )
@@ -147,13 +147,13 @@ test('removeUser', () => {
       expect(result).toEqual(null)
       expect(spies.update).toHaveBeenCalledTimes(1)
       expect(spies.update).toHaveBeenCalledWith(expect.objectContaining({
-        UpdateExpression: 'REMOVE #users.:userId ADD userCount = :decrement',
+        UpdateExpression: 'REMOVE #users.#userId ADD userCount :decrement',
         ExpressionAttributeNames: {
           '#users': 'users',
+          '#userId': 'abc',
         },
         ExpressionAttributeValues: {
           ':decrement': -1,
-          ':userId': 'abc',
         },
       }))
     })

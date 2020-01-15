@@ -16,6 +16,22 @@ const spies = {
 }
 
 describe('POST: league/{id}', () => {
+  test('requires body', () => {
+    const event = {
+      ...eventHttp,
+      requestContext: {
+        ...eventHttp.requestContext,
+        authorizer: { userId: 'abc' },
+      },
+      body: '',
+    }
+
+    return handler(event, null)
+      .then(result => {
+        expect(result.statusCode).toEqual(400)
+      })
+  })
+
   test('ERROR: doesn\'t exist', () => {
     spies.validateRequest.mockImplementation(() => (leagueMock))
     spies.getById.mockImplementation(() => Promise.resolve(null))

@@ -25,7 +25,7 @@ const spies = {
 }
 
 describe('POST: league', () => {
-  test('requires body', () => {
+  test('ERROR - requires body', () => {
     const event = {
       ...eventHttp,
       requestContext: {
@@ -33,6 +33,25 @@ describe('POST: league', () => {
         authorizer: { userId: 'abc' },
       },
       body: '',
+    }
+
+    return handler(event, null)
+      .then(result => {
+        expect(result.statusCode).toEqual(400)
+      })
+  })
+
+  test('ERROR - requires leagueId', () => {
+    const event = {
+      ...eventHttp,
+      requestContext: {
+        ...eventHttp.requestContext,
+        authorizer: { userId: 'abc' },
+      },
+      body: JSON.stringify({}),
+      pathParameters: {
+        leagueId: '',
+      }
     }
 
     return handler(event, null)

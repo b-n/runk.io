@@ -1,19 +1,94 @@
-describe('GET: match/{id}', () => {
-  test('LOGGGEDIN_NONMEMBER: fails', () => {
+jest.unmock('../../match/get')
+jest.unmock('../../lib/middleware')
+import { handler } from '../../match/get'
 
+import * as match from '../../repositories/match'
+
+import eventHttp from '../fixtures/eventHttp.json'
+import matchMock from '../fixtures/match.json'
+
+const spies = {
+  getById: jest.spyOn(match, 'getById'),
+  getByLeagueId: jest.spyOn(match, 'getByLeagueId'),
+}
+
+describe('GET: match/{id}', () => {
+  test('ERROR: id param needs a value', () => {
+    const event = {
+      ...eventHttp,
+      pathParameters: {
+        id: '',
+      },
+    }
+
+    return handler(event, null)
+      .then(result => {
+        expect(result.statusCode).toEqual(400)
+      })
   })
 
-  test('LOGGGEDIN_MEMBER: gets info', () => {
+  test('ERROR: no such id', () => {
+    spies.getById.mockImplementation(() => Promise.resolve(null))
+    const event = {
+      ...eventHttp,
+      pathParameters: {
+        id: '123',
+      },
+    }
 
+    return handler(event, null)
+      .then(result => {
+        expect(result.statusCode).toEqual(404)
+      })
+  })
+
+  test('success - can find the match', () => {
+    spies.getById.mockImplementation(() => Promise.resolve(matchMock))
+    const event = {
+      ...eventHttp,
+      pathParameters: {
+        id: '123',
+      },
+    }
+
+    return handler(event, null)
+      .then(result => {
+        expect(JSON.parse(result.body)).toEqual(matchMock)
+        expect(spies.getById).toHaveBeenCalledWith('123')
+        expect(result.statusCode).toEqual(200)
+      })
   })
 })
 
 describe('GET: league/{id}/match', () => {
-  test('LOGGEDIN_NONMEMBER: fails', () => {
+  test('ERROR: leagueId needs a value', () => {
+    const event = {
+      ...eventHttp,
+      pathParameters: {
+        leagueId: '',
+      },
+    }
 
+    return handler(event, null)
+      .then(result => {
+        expect(result.statusCode).toEqual(400)
+      })
   })
 
-  test('LOGGEDIN_MEMBER: gets a summary list', () => {
+  test('success - gets some matches', () => {
+    spies.getByLeagueId.mockImplementation(() => Promise.resolve([matchMock]))
+    const event = {
+      ...eventHttp,
+      pathParameters: {
+        leagueId: '123',
+      },
+    }
 
+    return handler(event, null)
+      .then(result => {
+        expect(JSON.parse(result.body)).toEqual([matchMock])
+        expect(spies.getByLeagueId).toHaveBeenCalledWith('123')
+        expect(result.statusCode).toEqual(200)
+      })
   })
 })

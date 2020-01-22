@@ -43,11 +43,16 @@ const league: Handler = async (event) => {
     }),
     { ErrorClass: BadInput }
   )
+
+  if (Object.keys(newMatch.users).length !== 2 || uniqBy(Object.values(newMatch.users), user => user.team).length !== 2) {
+    throw new BadInput('There should be exactly 2 teams of 1 member each')
+  }
+
   const { userId } = event.requestContext.authorizer
 
   const league = await getById(leagueId)
 
-  if (!league.users[userId] || !league.users[userId].isActive) {
+  if (league === null || !league.users[userId] || !league.users[userId].isActive) {
     throw new NotFound()
   }
 
@@ -58,10 +63,6 @@ const league: Handler = async (event) => {
 
   if (nonExistantUsers.length > 0) {
     throw new BadInput(`User(s): ${nonExistantUsers.join(',')} are not part of the league`)
-  }
-
-  if (Object.keys(newMatch.users).length !== 2 || uniqBy(Object.values(newMatch.users), user => user.team).length !== 2) {
-    throw new BadInput('There should be exactly 2 teams of 1 member each')
   }
 
   const existingScores: Array<number> = []

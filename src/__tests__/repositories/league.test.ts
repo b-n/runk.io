@@ -1,6 +1,14 @@
 jest.unmock('../../repositories/league')
 jest.unmock('uuid/v4')
-import { create, getById, update, addUser, removeUser, setUsers } from '../../repositories/league'
+import {
+  create,
+  getById,
+  update,
+  addUser,
+  removeUser,
+  setUsers,
+  updateScores,
+} from '../../repositories/league'
 
 import * as dynamo from '../../lib/dynamo'
 
@@ -181,6 +189,35 @@ test('setUsers', () => {
         ExpressionAttributeValues: {
           ':userCount': 2,
           ':users': users,
+        },
+      }))
+    })
+})
+test('updateScores', () => {
+  spies.update.mockImplementation(() => Promise.resolve(null))
+  const scoreUpdates = [
+    { id: 'abc', score: 567 },
+    { id: 'bcd', score: 9001 },
+  ]
+
+  return updateScores(
+    'abc',
+    scoreUpdates
+  )
+    .then(result => {
+      expect(result).toEqual(null)
+      expect(spies.update).toHaveBeenCalledTimes(1)
+      expect(spies.update).toHaveBeenCalledWith(expect.objectContaining({
+        UpdateExpression: 'SET #users.#user0.#score = :userScore0,#users.#user1.#score = :userScore1',
+        ExpressionAttributeNames: {
+          '#users': 'users',
+          '#score': 'score',
+          '#user0': 'abc',
+          '#user1': 'bcd',
+        },
+        ExpressionAttributeValues: {
+          ':userScore0': 567,
+          ':userScore1': 9001,
         },
       }))
     })

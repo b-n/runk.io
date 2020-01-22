@@ -16,7 +16,7 @@ match-post:
   events:
     - http:
         method: post
-        path: match
+        path: league/{leagueId}/match
         cors: true
         authorizer: auth
 match-put:

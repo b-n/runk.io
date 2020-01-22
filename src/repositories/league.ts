@@ -124,6 +124,43 @@ const removeUser = async (leagueId: string, userId: string): Promise<void> => {
     .then(() => null)
 }
 
+interface ScoreUpdate {
+  id: string
+  score: number
+}
+
+const updateScores = async (leagueId: string, scores: Array<ScoreUpdate>): Promise<void> => {
+  const { ExpressionAttributeNames, ExpressionAttributeValues, UpdateExpression } = scores.reduce((a, c, i) => {
+    a.ExpressionAttributeNames['#user' + i] = c.id
+    a.ExpressionAttributeValues[':userScore' + i] = c.score
+    a.UpdateExpression.push(`#users.#user${i}.#score = :userScore${i}`)
+    return a
+  }, {
+    ExpressionAttributeNames: {
+      '#users': 'users',
+      '#score': 'score',
+    },
+    ExpressionAttributeValues: {
+    },
+    UpdateExpression: [],
+  } as {
+    ExpressionAttributeNames: Record<string, string>
+    ExpressionAttributeValues: Record<string, number>
+    UpdateExpression: Array<string>
+  })
+
+  return updateDynamo({
+    Key: {
+      id: leagueId,
+    },
+    TableName: process.env.DB_TABLE_LEAGUE,
+    ExpressionAttributeNames,
+    ExpressionAttributeValues,
+    UpdateExpression: `SET ${UpdateExpression.join(',')}`,
+  })
+    .then(() => null)
+}
+
 export {
   create,
   update,
@@ -131,4 +168,6 @@ export {
   setUsers,
   addUser,
   removeUser,
+  updateScores,
+  ScoreUpdate,
 }

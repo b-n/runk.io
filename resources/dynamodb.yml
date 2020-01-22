@@ -61,13 +61,13 @@ Resources:
           AttributeName: leagueId
           AttributeType: S
         -
-          AttributeName: matchDate
+          AttributeName: date
           AttributeType: S
       KeySchema:
         -
           AttributeName: id
           KeyType: HASH
-        - AttributeName: matchDate
+        - AttributeName: date
           KeyType: RANGE
       GlobalSecondaryIndexes:
         -
@@ -77,7 +77,7 @@ Resources:
               AttributeName: leagueId
               KeyType: HASH
             - 
-              AttributeName: matchDate
+              AttributeName: date
               KeyType: RANGE
           Projection:
             ProjectionType: ALL

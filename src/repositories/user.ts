@@ -53,9 +53,9 @@ const getById = async (
 ): Promise<User> => {
   const { ProjectionExpression, ExpressionAttributeNames } = safeProjection(
     projection ||
-    sameUser
+    (sameUser
       ? ['id', 'displayName', 'email', 'pictureURL', 'locale', 'leagues']
-      : ['id', 'displayName', 'pictureURL']
+      : ['id', 'displayName', 'pictureURL'])
   )
 
   return query({

@@ -18,10 +18,10 @@ const league: Handler = async (event) => {
     throw new BadInput('Requires a body')
   }
 
-  const leagueId = pathParameters && pathParameters.leagueId
+  const id = pathParameters && pathParameters.id
 
-  if (!leagueId) {
-    throw new BadInput('requires a leagueId')
+  if (!id) {
+    throw new BadInput('requires a id')
   }
 
   const newMatch: Match = validateRequest(
@@ -50,7 +50,7 @@ const league: Handler = async (event) => {
 
   const { userId } = event.requestContext.authorizer
 
-  const league = await getById(leagueId)
+  const league = await getById(id)
 
   if (league === null || !league.users[userId] || !league.users[userId].isActive) {
     throw new NotFound()
@@ -97,10 +97,10 @@ const league: Handler = async (event) => {
 
   const match = await create({
     ...newMatch,
-    leagueId,
+    leagueId: id,
   })
 
-  await updateScores(leagueId, scoreUpdates)
+  await updateScores(id, scoreUpdates)
 
   return {
     body: match,

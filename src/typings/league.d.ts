@@ -2,6 +2,7 @@ interface League {
   id?: string
   displayName: string
   pictureURL: string
+  description: string
   isActive?: boolean
   inviteCode: string
   userCount?: number

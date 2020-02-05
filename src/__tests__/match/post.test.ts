@@ -41,7 +41,7 @@ describe('POST: league', () => {
       })
   })
 
-  test('ERROR - requires leagueId', () => {
+  test('ERROR - requires id', () => {
     const event = {
       ...eventHttp,
       requestContext: {
@@ -50,8 +50,8 @@ describe('POST: league', () => {
       },
       body: JSON.stringify({}),
       pathParameters: {
-        leagueId: '',
-      }
+        id: '',
+      },
     }
 
     return handler(event, null)
@@ -79,7 +79,7 @@ describe('POST: league', () => {
         authorizer: { userId: 'abc' },
       },
       pathParameters: {
-        leagueId: '123',
+        id: '123',
       },
       body: JSON.stringify({ displayName: 'testing' }),
     }
@@ -113,7 +113,7 @@ describe('POST: league', () => {
         authorizer: { userId: 'abc' },
       },
       pathParameters: {
-        leagueId: '123',
+        id: '123',
       },
       body: JSON.stringify({ displayName: 'testing' }),
     }
@@ -148,7 +148,7 @@ describe('POST: league', () => {
         authorizer: { userId: 'abc' },
       },
       pathParameters: {
-        leagueId: '123',
+        id: '123',
       },
       body: JSON.stringify({ displayName: 'testing' }),
     }
@@ -198,7 +198,7 @@ describe('POST: league', () => {
         authorizer: { userId: 'abc' },
       },
       pathParameters: {
-        leagueId: '123',
+        id: '123',
       },
       body: JSON.stringify({ displayName: 'testing' }),
     }
@@ -248,7 +248,7 @@ describe('POST: league', () => {
         authorizer: { userId: 'abc' },
       },
       pathParameters: {
-        leagueId: '123',
+        id: '123',
       },
       body: JSON.stringify({ displayName: 'testing' }),
     }
@@ -301,7 +301,7 @@ describe('POST: league', () => {
         authorizer: { userId: 'abc' },
       },
       pathParameters: {
-        leagueId: '123',
+        id: '123',
       },
       body: JSON.stringify({ displayName: 'testing' }),
     }

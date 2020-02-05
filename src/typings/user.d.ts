@@ -15,6 +15,7 @@ interface User {
 interface UserLeague {
   id: string
   displayName: string
+  description: string
   pictureURL: string
 }
 

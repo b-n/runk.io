@@ -6,13 +6,13 @@ import { withMiddleware, Handler } from '../lib/middleware'
 import { getById, getByLeagueId } from '../repositories/match'
 
 const match: Handler = async (event) => {
-  const { pathParameters } = event
+  const { path, pathParameters } = event
 
-  if (pathParameters.leagueId !== undefined) {
-    const leagueId = pathParameters && pathParameters.leagueId
+  if (path.match(/.*league\/[^\/]*\/match/)) {
+    const leagueId = pathParameters && pathParameters.id
 
     if (!leagueId) {
-      throw new BadInput('Need to supply a leagueId')
+      throw new BadInput('Need to supply a id')
     }
 
     const matches = await getByLeagueId(leagueId)

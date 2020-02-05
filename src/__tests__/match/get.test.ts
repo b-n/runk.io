@@ -16,6 +16,7 @@ describe('GET: match/{id}', () => {
   test('ERROR: id param needs a value', () => {
     const event = {
       ...eventHttp,
+      path: 'match/',
       pathParameters: {
         id: '',
       },
@@ -31,6 +32,7 @@ describe('GET: match/{id}', () => {
     spies.getById.mockImplementation(() => Promise.resolve(null))
     const event = {
       ...eventHttp,
+      path: 'match/123',
       pathParameters: {
         id: '123',
       },
@@ -46,6 +48,7 @@ describe('GET: match/{id}', () => {
     spies.getById.mockImplementation(() => Promise.resolve(matchMock))
     const event = {
       ...eventHttp,
+      path: 'match/123',
       pathParameters: {
         id: '123',
       },
@@ -64,8 +67,9 @@ describe('GET: league/{id}/match', () => {
   test('ERROR: leagueId needs a value', () => {
     const event = {
       ...eventHttp,
+      path: 'league//match',
       pathParameters: {
-        leagueId: '',
+        id: '',
       },
     }
 
@@ -79,8 +83,9 @@ describe('GET: league/{id}/match', () => {
     spies.getByLeagueId.mockImplementation(() => Promise.resolve([matchMock]))
     const event = {
       ...eventHttp,
+      path: 'league/123/match',
       pathParameters: {
-        leagueId: '123',
+        id: '123',
       },
     }
 

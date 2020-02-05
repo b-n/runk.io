@@ -27,6 +27,7 @@ test('create', () => {
   return create(
     {
       displayName: 'testing league',
+      description: 'i\'m a league',
       pictureURL: 'wat up',
       inviteCode: null,
     },

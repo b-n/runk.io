@@ -3,7 +3,7 @@ match-get:
   events:
     - http:
         method: get
-        path: league/{leagueId}/match
+        path: league/{id}/match
         cors: true
         authorizer: auth
     - http:
@@ -16,7 +16,7 @@ match-post:
   events:
     - http:
         method: post
-        path: league/{leagueId}/match
+        path: league/{id}/match
         cors: true
         authorizer: auth
 match-put:

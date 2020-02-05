@@ -67,6 +67,22 @@ And to deploy(dev/prod stages)
     npm run deploy:dev
     npm run deploy:prod
 
+### Parameter Store and Secrets
+
+Whilst developing, you'll need valid parameters and secrets in a `.env` file, 
+which serverless offline will use to load and merge into `process.env` for 
+runtime. The following parameters need to be set:
+
+```
+/runk/dev/jwtSecret=SomethingStrong
+/runk/dev/googleClientId=xxxxx-yyyyy.apps.googleusercontent.com
+/runk/dev/googleClientSecret=MatchingSecretToTheClientId
+/runk/dev/googleRedirectUrl=http://localhost:3000/auth/callback
+```
+
+When deploying to AWS, these same secrets/parameters need to be in AWS System 
+Manager -> Parameter Store
+
 ## Test Coverage
 
 [![codecov](https://codecov.io/gh/nzchicken/runk.io/graphs/icicle.svg?token=ZHxi9bGtsz)](https://codecov.io/gh/nzchicken/runk.io)

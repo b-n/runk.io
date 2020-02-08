@@ -90,7 +90,7 @@ const update = async (userId: string, values: Record<string, any>): Promise<void
 }
 
 const addLeague = async (userId: string, league: League): Promise<void> => {
-  const { id, displayName, pictureURL } = league
+  const { id, displayName, pictureURL, description } = league
   return updateDynamo({
     Key: {
       id: userId,
@@ -101,7 +101,7 @@ const addLeague = async (userId: string, league: League): Promise<void> => {
       '#leagueId': league.id,
     },
     ExpressionAttributeValues: {
-      ':league': { id, displayName, pictureURL },
+      ':league': { id, displayName, pictureURL, description },
     },
     TableName: process.env.DB_TABLE_USER,
   })

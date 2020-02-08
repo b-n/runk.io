@@ -20,6 +20,8 @@ const league: Handler = async (event) => {
     Joi.object({
       id: Joi.string().disallow(),
       displayName: Joi.string().min(1).required(),
+      description: Joi.string().min(1).required(),
+      pictureURL: Joi.string().min(1).required(),
       inviteCode: Joi.string().allow(null).default(null),
     }),
     { ErrorClass: BadInput }

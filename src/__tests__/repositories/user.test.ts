@@ -129,6 +129,7 @@ test('addLeague', () => {
         ExpressionAttributeValues: {
           ':league': {
             id: '123',
+            description: '',
             displayName: '',
             pictureURL: '',
           },

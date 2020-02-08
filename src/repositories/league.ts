@@ -47,7 +47,16 @@ const update = async (leagueId: string, values: Record<string, any>): Promise<vo
 }
 
 const getById = async (leagueId: string): Promise<League> => {
-  const { ProjectionExpression, ExpressionAttributeNames } = safeProjection(['id', 'isActive', 'displayName', 'inviteCode', 'userCount', 'users'])
+  const { ProjectionExpression, ExpressionAttributeNames } = safeProjection([
+    'id',
+    'isActive',
+    'displayName',
+    'inviteCode',
+    'userCount',
+    'users',
+    'description',
+    'pictureURL',
+  ])
 
   return query({
     KeyConditionExpression: 'id = :leagueId',

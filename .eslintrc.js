@@ -26,7 +26,19 @@ module.exports = {
     'no-undef': 'off',
     '@typescript-eslint/camelcase': [2, {
       properties: 'always',
-      allow: [ 'access_token', 'token_type', 'expires_in', 'refresh_token', 'client_id', 'client_secret', 'grant_type', 'redirect_uri', 'id_token' ]
+      allow: [
+        'access_token',
+        'token_type',
+        'expires_in',
+        'refresh_token',
+        'client_id',
+        'client_secret',
+        'grant_type',
+        'redirect_uri',
+        'id_token',
+        'response_type',
+        'access_type',
+      ]
     }],
     '@typescript-eslint/member-delimiter-style': [2, {
       'multiline': {

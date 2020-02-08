@@ -1,7 +1,7 @@
 import 'source-map-support/register'
 import { AuthorizerError } from '../lib/errors'
 import { withMiddleware, Handler } from '../lib/middleware'
-import { sign, verify, Authorizer } from '../lib/auth'
+import { sign, verify, Authorizer, Login } from '../lib/auth'
 
 import * as google from '../lib/google'
 
@@ -76,11 +76,11 @@ const token: Handler = async (event) => {
 
 export const handler = withMiddleware(token)
 
-const generateLoginUrls = (services: Record<string, Authorizer>): Record<string, string> =>
+const generateLoginUrls = (services: Record<string, Authorizer>): Record<string, Login> =>
   Object.keys(services).reduce((accumulator, serviceName) => {
     accumulator[serviceName] = authServices[serviceName].generateLoginUrl()
     return accumulator
-  }, {} as Record<string, string>)
+  }, {} as Record<string, Login>)
 
 const getTokenFromAuthCode = async (
   { authorizationCode, authorizer }: { authorizationCode: string; authorizer: string }

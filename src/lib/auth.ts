@@ -5,7 +5,12 @@ import { getSecret } from './secrets'
 export interface Authorizer {
   getName: () => string
   checkAuthCode: (code: string) => Promise<AuthResult>
-  generateLoginUrl: () => string
+  generateLoginUrl: () => Login
+}
+
+export interface Login {
+  url: string
+  parameters: Record<string, string>
 }
 
 interface SignOptions {

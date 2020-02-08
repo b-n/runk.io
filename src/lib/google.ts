@@ -1,23 +1,24 @@
 import fetch from 'node-fetch'
 
+import { Login } from './auth'
 import { handleHttpError, AuthorizerError } from './errors'
 
 import { getSecret } from './secrets'
 
 const getName = (): string => 'GOOGLE'
 
-const generateLoginUrl = () => {
-  return `\
-https://accounts.google.com/o/oauth2/v2/auth\
-?client_id=${getSecret('GOOGLE_CLIENT_ID')}\
-&redirect_uri=${getSecret('GOOGLE_REDIRECT_URL')}\
-&response_type=code\
-&scope=profile%20email\
-&access_type=offline\
-&prompt=consent\
-&state=GOOGLE\
-`
-}
+const generateLoginUrl = (): Login => ({
+  url: 'https://accounts.google.com/o/oauth2/v2/auth',
+  parameters: {
+    client_id: getSecret('GOOGLE_CLIENT_ID'),
+    redirect_uri: getSecret('GOOGLE_REDIRECT_URL'),
+    response_type: 'code',
+    scope: 'profile%20email',
+    access_type: 'offline',
+    prompt: 'consent',
+    state: 'GOOGLE',
+  },
+})
 
 const getToken = async (code: string) => {
   const clientId = getSecret('GOOGLE_CLIENT_ID')

@@ -26,7 +26,13 @@ test('getName - gets google', () => {
 })
 
 test('generateLoginUrl - generates a login url', () => {
-  expect(generateLoginUrl()).toEqual('https://accounts.google.com/o/oauth2/v2/auth?client_id=GOOGLE_CLIENT_ID&redirect_uri=GOOGLE_REDIRECT_URL&response_type=code&scope=profile%20email&access_type=offline&prompt=consent&state=GOOGLE')
+  expect(generateLoginUrl()).toEqual(expect.objectContaining({
+    url: expect.any(String),
+    parameters: expect.objectContaining({
+      client_id: expect.any(String),
+      redirect_uri: expect.any(String),
+    }),
+  }))
   expect(spies.getSecret).toHaveBeenCalledTimes(2)
   expect(spies.getSecret).toHaveBeenCalledWith('GOOGLE_CLIENT_ID')
   expect(spies.getSecret).toHaveBeenCalledWith('GOOGLE_REDIRECT_URL')

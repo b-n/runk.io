@@ -10,6 +10,7 @@ type Constructable<T> = new (message: string) => T
 
 const handleHttpError = <T>(ErrorClass: Constructable<T>) => async (response: Response) => {
   if (response.ok) return response
+  console.log(response, await response.json())
   const error = new ErrorClass(`${response.status} ${response.statusText}`)
   throw error
 }

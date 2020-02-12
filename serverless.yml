@@ -43,7 +43,6 @@ provider:
     JWT_SECRET: ${ssm:/runk/${self:custom.stage}/jwtSecret~true}
     GOOGLE_CLIENT_ID: ${ssm:/runk/${self:custom.stage}/googleClientId}
     GOOGLE_CLIENT_SECRET: ${ssm:/runk/${self:custom.stage}/googleClientSecret~true}
-    GOOGLE_REDIRECT_URL: ${ssm:/runk/${self:custom.stage}/googleRedirectUrl}
   iamRoleStatements:
     - Effect: Allow
       Action:

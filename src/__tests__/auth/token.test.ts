@@ -56,7 +56,7 @@ describe('GET: token', () => {
 
       return handler(event, null)
         .then((result) => {
-          expect(JSON.parse(result.body).message).toEqual('Requires both code and state')
+          expect(JSON.parse(result.body).message).toEqual('Requires the following parameters: code, state. redirect_uri')
           expect(result.statusCode).toEqual(400)
         })
     })
@@ -72,7 +72,23 @@ describe('GET: token', () => {
 
       return handler(event, null)
         .then((result) => {
-          expect(JSON.parse(result.body).message).toEqual('Requires both code and state')
+          expect(JSON.parse(result.body).message).toEqual('Requires the following parameters: code, state. redirect_uri')
+          expect(result.statusCode).toEqual(400)
+        })
+    })
+
+    test('ERROR: requires redirect_uri query param', () => {
+      const event = {
+        ...eventHttp,
+        queryStringParameters: {
+          grant_type: 'authorization_code',
+          code: 'testing',
+        },
+      }
+
+      return handler(event, null)
+        .then((result) => {
+          expect(JSON.parse(result.body).message).toEqual('Requires the following parameters: code, state. redirect_uri')
           expect(result.statusCode).toEqual(400)
         })
     })
@@ -84,6 +100,7 @@ describe('GET: token', () => {
           grant_type: 'authorization_code',
           code: 'testing',
           state: 'testing',
+          redirect_uri: 'testing',
         },
       }
 
@@ -103,6 +120,7 @@ describe('GET: token', () => {
           grant_type: 'authorization_code',
           code: 'testing',
           state: 'GoOgLe',
+          redirect_uri: 'testing',
         },
       }
 
@@ -125,6 +143,7 @@ describe('GET: token', () => {
           grant_type: 'authorization_code',
           code: 'testing',
           state: 'GoOgLe',
+          redirect_uri: 'testing',
         },
       }
 
@@ -153,6 +172,7 @@ describe('GET: token', () => {
           grant_type: 'authorization_code',
           code: 'testing',
           state: 'GoOgLe',
+          redirect_uri: 'testing',
         },
       }
 

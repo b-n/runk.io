@@ -4,7 +4,7 @@ import { getSecret } from './secrets'
 
 export interface Authorizer {
   getName: () => string
-  checkAuthCode: (code: string) => Promise<AuthResult>
+  checkAuthCode: (code: string, redirect_uri: string) => Promise<AuthResult>
   generateLoginUrl: () => Login
 }
 

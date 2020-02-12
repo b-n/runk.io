@@ -30,12 +30,10 @@ test('generateLoginUrl - generates a login url', () => {
     url: expect.any(String),
     parameters: expect.objectContaining({
       client_id: expect.any(String),
-      redirect_uri: expect.any(String),
     }),
   }))
-  expect(spies.getSecret).toHaveBeenCalledTimes(2)
+  expect(spies.getSecret).toHaveBeenCalledTimes(1)
   expect(spies.getSecret).toHaveBeenCalledWith('GOOGLE_CLIENT_ID')
-  expect(spies.getSecret).toHaveBeenCalledWith('GOOGLE_REDIRECT_URL')
 })
 
 describe('getToken', () => {
@@ -47,7 +45,7 @@ describe('getToken', () => {
     })
 
     spies.fetch.mockImplementation(() => Promise.resolve(response))
-    expect(getToken('123')).rejects.toThrow(AuthorizerError)
+    expect(getToken('123', '234')).rejects.toThrow(AuthorizerError)
   })
 
   test('success: gives some json back', () => {
@@ -60,7 +58,7 @@ describe('getToken', () => {
     })
     spies.fetch.mockImplementation(() => Promise.resolve(response))
 
-    expect(getToken('123')).resolves.toEqual(responseJSON)
+    expect(getToken('123', '234')).resolves.toEqual(responseJSON)
 
     expect(spies.fetch).toHaveBeenCalledWith(
       expect.any(String),
@@ -70,7 +68,7 @@ describe('getToken', () => {
           client_id: 'GOOGLE_CLIENT_ID',
           client_secret: 'GOOGLE_CLIENT_SECRET',
           grant_type: 'authorization_code',
-          redirect_uri: 'GOOGLE_REDIRECT_URL',
+          redirect_uri: '234',
         }),
       })
     )
@@ -125,7 +123,7 @@ test('checkAuthCode - gives all details', () => {
   })
   spies.fetch.mockImplementation(() => Promise.resolve(response))
 
-  expect(checkAuthCode('123')).resolves.toEqual({
+  expect(checkAuthCode('123', '234')).resolves.toEqual({
     authorizer: 'GOOGLE',
     id: responseJSON.id,
     email: responseJSON.email,

@@ -33,16 +33,26 @@ const token: Handler = async (event) => {
     }
   }
 
-  const { grant_type, refresh_token, code, state } = queryStringParameters
+  const {
+    grant_type,
+    refresh_token,
+    redirect_uri,
+    code,
+    state,
+  } = queryStringParameters
 
   try {
     switch (grant_type) {
       case 'authorization_code':
-        if (!code || !state) {
-          throw new AuthorizerError('Requires both code and state')
+        if (!code || !state || !redirect_uri) {
+          throw new AuthorizerError('Requires the following parameters: code, state. redirect_uri')
         }
         return {
-          body: await getTokenFromAuthCode({ authorizationCode: code, authorizer: state.toLowerCase() }),
+          body: await getTokenFromAuthCode({
+            authorizationCode: code,
+            authorizer: state.toLowerCase(),
+            redirect_uri: redirect_uri,
+          }),
           statusCode: 200,
         }
       case 'refresh_token':
@@ -82,15 +92,21 @@ const generateLoginUrls = (services: Record<string, Authorizer>): Record<string,
     return accumulator
   }, {} as Record<string, Login>)
 
+interface TokenFromAuthRequest {
+  authorizationCode: string
+  authorizer: string
+  redirect_uri: string
+}
+
 const getTokenFromAuthCode = async (
-  { authorizationCode, authorizer }: { authorizationCode: string; authorizer: string }
+  { authorizationCode, authorizer, redirect_uri }: TokenFromAuthRequest
 ): Promise<AuthToken> => {
   const authService = authServices[authorizer]
   if (!authService) {
     throw new AuthorizerError(`Invalid authorizer: ${authorizer}`)
   }
 
-  const authResult = await authService.checkAuthCode(authorizationCode)
+  const authResult = await authService.checkAuthCode(authorizationCode, redirect_uri)
   const userId = await getUserIdByAuthId(
     authResult.id,
     authService.getName()

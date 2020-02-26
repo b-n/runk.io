@@ -61,9 +61,9 @@ provider:
 functions:
   - ${file(resources/functions-auth.yml)}
   - ${file(resources/functions-league.yml)}
+  - ${file(resources/functions-discover.yml)}
   - ${file(resources/functions-match.yml)}
   - ${file(resources/functions-user.yml)}
-  - ${file(resources/functions-misc.yml)}
 
 resources:
   - ${file(resources/dynamodb.yml)}

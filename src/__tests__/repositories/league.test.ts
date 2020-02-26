@@ -3,6 +3,7 @@ jest.unmock('uuid/v4')
 import {
   create,
   getById,
+  getAll,
   update,
   addUser,
   removeUser,
@@ -18,6 +19,7 @@ import leagueRoleMock from '../fixtures/leagueRole.json'
 const spies = {
   put: jest.spyOn(dynamo, 'put'),
   query: jest.spyOn(dynamo, 'query'),
+  scan: jest.spyOn(dynamo, 'scan'),
   update: jest.spyOn(dynamo, 'update'),
 }
 
@@ -112,6 +114,20 @@ describe('getById', () => {
       })
   })
 })
+
+test('getAll', () => {
+  spies.scan.mockImplementation(() => Promise.resolve({
+    Count: 1,
+    Items: [{ id: 'abc' }],
+  }))
+
+  return getAll()
+    .then(result => {
+      expect(result).toEqual([{ id: 'abc' }])
+      expect(spies.scan).toHaveBeenCalledTimes(1)
+    })
+})
+
 
 test('addUser', () => {
   spies.update.mockImplementation(() => Promise.resolve(null))

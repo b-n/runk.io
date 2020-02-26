@@ -5,6 +5,7 @@ import AWS from 'aws-sdk'
 // jest.mock('aws-sdk')
 const mockReturns = {
   query: Promise.resolve(null),
+  scan: Promise.resolve(null),
   put: Promise.resolve(null),
   update: Promise.resolve(null),
   createSet: null,
@@ -14,11 +15,14 @@ const spies = {
   query: jest.fn().mockReturnValue({
     promise: jest.fn().mockImplementation(() => mockReturns.query),
   }),
+  scan: jest.fn().mockReturnValue({
+    promise: jest.fn().mockImplementation(() => mockReturns.scan),
+  }),
   put: jest.fn().mockReturnValue({
-    promise: jest.fn().mockImplementation(() => mockReturns.query),
+    promise: jest.fn().mockImplementation(() => mockReturns.put),
   }),
   update: jest.fn().mockReturnValue({
-    promise: jest.fn().mockImplementation(() => mockReturns.query),
+    promise: jest.fn().mockImplementation(() => mockReturns.update),
   }),
   createSet: jest.fn().mockReturnValue(mockReturns.createSet),
 } as Record<string, any>
@@ -29,7 +33,7 @@ AWS.DynamoDB.DocumentClient = jest.fn().mockImplementation(() => Object.keys(spi
 ))
 
 jest.unmock('../../lib/dynamo')
-import { createSet, safeProjection, query, put, update } from '../../lib/dynamo'
+import { createSet, safeProjection, query, scan, put, update } from '../../lib/dynamo'
 
 test('safeProjection - generates a valid projection', () => {
   const result = safeProjection(['id', 'name'])
@@ -51,6 +55,18 @@ test('query', () => {
     .then((result: any) => {
       expect(result).toEqual(null)
       expect(spies.query).toHaveBeenCalledTimes(1)
+    })
+})
+
+test('scan', () => {
+  const input = {
+    TableName: 'testing',
+  }
+
+  return scan(input)
+    .then((result: any) => {
+      expect(result).toEqual(null)
+      expect(spies.scan).toHaveBeenCalledTimes(1)
     })
 })
 

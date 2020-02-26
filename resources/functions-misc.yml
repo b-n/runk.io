@@ -1,7 +1,0 @@
-echo:
-  handler: src/echo.handler
-  events:
-    - http:
-        method: get
-        path: echo
-        cors: true

@@ -19,6 +19,11 @@ const query =
 Promise<DocumentClient.QueryOutput> =>
     db.query(params).promise()
 
+const scan =
+  async (params: DocumentClient.ScanInput):
+Promise<DocumentClient.ScanOutput> =>
+    db.scan(params).promise()
+
 const put =
   async (params: DocumentClient.PutItemInput):
 Promise<DocumentClient.PutItemOutput> =>
@@ -53,6 +58,7 @@ const createSet = (items: Array<any>) => {
 export {
   put,
   query,
+  scan,
   update,
   safeProjection,
   createSet,

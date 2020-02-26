@@ -170,10 +170,28 @@ const updateScores = async (leagueId: string, scores: Array<ScoreUpdate>): Promi
     .then(() => null)
 }
 
+const getAll = async (): Promise<Array<League>> => {
+  const { ProjectionExpression, ExpressionAttributeNames } = safeProjection([
+    'id',
+    'isActive',
+    'displayName',
+    'userCount',
+    'description',
+    'pictureURL',
+  ])
+  return scan({
+    TableName: process.env.DB_TABLE_LEAGUE,
+    ExpressionAttributeNames,
+    ProjectionExpression,
+  })
+    .then(result => result.Items as Array<League>)
+}
+
 export {
   create,
   update,
   getById,
+  getAll,
   setUsers,
   addUser,
   removeUser,

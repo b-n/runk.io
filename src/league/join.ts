@@ -36,7 +36,7 @@ const league: Handler = async (event) => {
     throw new BadInput('inviteCode does not match the league')
   }
 
-  if (league.users[userId]) {
+  if (league.users[userId] && league.users[userId].isActive) {
     throw new BadInput('Already joined the league')
   }
 

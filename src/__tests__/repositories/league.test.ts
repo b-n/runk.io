@@ -14,6 +14,7 @@ import {
 import * as dynamo from '../../lib/dynamo'
 
 import userMock from '../fixtures/user.json'
+import leagueMock from '../fixtures/league.json'
 import leagueRoleMock from '../fixtures/leagueRole.json'
 
 const spies = {
@@ -128,37 +129,87 @@ test('getAll', () => {
     })
 })
 
+describe('addUser', () => {
+  test('no existing user', () => {
+    spies.query.mockImplementation(() => Promise.resolve({
+      Items: [leagueMock],
+      Count: 1,
+    }))
+    spies.update.mockImplementation(() => Promise.resolve(null))
 
-test('addUser', () => {
-  spies.update.mockImplementation(() => Promise.resolve(null))
-
-  return addUser(
-    '123',
-    {
-      ...userMock,
-      id: 'abc',
-    }
-  )
-    .then(result => {
-      expect(result).toEqual(null)
-      expect(spies.update).toHaveBeenCalledTimes(1)
-      expect(spies.update).toHaveBeenCalledWith(expect.objectContaining({
-        UpdateExpression: 'SET #users.#userId = :user ADD userCount :increment',
-        ExpressionAttributeNames: {
-          '#users': 'users',
-          '#userId': 'abc',
-        },
-        ExpressionAttributeValues: {
-          ':increment': 1,
-          ':user': {
-            ...leagueRoleMock,
+    return addUser(
+      '123',
+      {
+        ...userMock,
+        id: 'abc',
+      }
+    )
+      .then(result => {
+        expect(result).toEqual(null)
+        expect(spies.query).toHaveBeenCalledTimes(1)
+        expect(spies.update).toHaveBeenCalledTimes(1)
+        expect(spies.update).toHaveBeenCalledWith(expect.objectContaining({
+          UpdateExpression: 'SET #users.#userId = :user ADD userCount :increment',
+          ExpressionAttributeNames: {
+            '#users': 'users',
+            '#userId': 'abc',
+          },
+          ExpressionAttributeValues: {
+            ':increment': 1,
+            ':user': {
+              ...leagueRoleMock,
+              id: 'abc',
+              displayName: '',
+              pictureURL: '',
+            },
+          },
+        }))
+      })
+  })
+  test('existing user', () => {
+    spies.query.mockImplementation(() => Promise.resolve({
+      Items: [{
+        ...leagueMock,
+        users: {
+          abc: {
             id: 'abc',
-            displayName: '',
-            pictureURL: '',
+            score: 1,
           },
         },
-      }))
-    })
+      }],
+      Count: 1,
+    }))
+    spies.update.mockImplementation(() => Promise.resolve(null))
+
+    return addUser(
+      '123',
+      {
+        ...userMock,
+        id: 'abc',
+      }
+    )
+      .then(result => {
+        expect(result).toEqual(null)
+        expect(spies.update).toHaveBeenCalledTimes(1)
+        expect(spies.update).toHaveBeenCalledWith(expect.objectContaining({
+          UpdateExpression: 'SET #users.#userId = :user ADD userCount :increment',
+          ExpressionAttributeNames: {
+            '#users': 'users',
+            '#userId': 'abc',
+          },
+          ExpressionAttributeValues: {
+            ':increment': 1,
+            ':user': {
+              ...leagueRoleMock,
+              score: 1,
+              id: 'abc',
+              displayName: '',
+              pictureURL: '',
+            },
+          },
+        }))
+      })
+  })
 })
 
 test('removeUser', () => {
@@ -172,13 +223,15 @@ test('removeUser', () => {
       expect(result).toEqual(null)
       expect(spies.update).toHaveBeenCalledTimes(1)
       expect(spies.update).toHaveBeenCalledWith(expect.objectContaining({
-        UpdateExpression: 'REMOVE #users.#userId ADD userCount :decrement',
+        UpdateExpression: 'SET #users.#userId.#isActive = :active ADD userCount :decrement',
         ExpressionAttributeNames: {
           '#users': 'users',
           '#userId': 'abc',
+          '#isActive': 'isActive',
         },
         ExpressionAttributeValues: {
           ':decrement': -1,
+          ':active': false,
         },
       }))
     })

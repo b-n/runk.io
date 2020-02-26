@@ -1,6 +1,6 @@
 import uuidv4 from 'uuid/v4'
 
-import { put, query, update as updateDynamo, safeProjection } from '../lib/dynamo'
+import { put, query, scan, update as updateDynamo, safeProjection } from '../lib/dynamo'
 
 const create = async (league: League, user: User): Promise<League> => {
   const { id, displayName, pictureURL } = user
@@ -90,6 +90,16 @@ const setUsers = async (leagueId: string, users: Record<string, LeagueUser>): Pr
 
 const addUser = async (leagueId: string, user: User): Promise<void> => {
   const { id, displayName, pictureURL } = user
+  const league = await getById(leagueId)
+  const newUser = {
+    score: 1000,
+    ...league.users[id],
+    isActive: true,
+    role: LeagueRole.member,
+    id,
+    displayName,
+    pictureURL,
+  }
   return updateDynamo({
     Key: {
       id: leagueId,
@@ -100,14 +110,7 @@ const addUser = async (leagueId: string, user: User): Promise<void> => {
       '#userId': id,
     },
     ExpressionAttributeValues: {
-      ':user': {
-        id,
-        displayName,
-        pictureURL,
-        isActive: true,
-        score: 1000,
-        role: LeagueRole.member,
-      },
+      ':user': newUser,
       ':increment': 1,
     },
     TableName: process.env.DB_TABLE_LEAGUE,
@@ -120,13 +123,15 @@ const removeUser = async (leagueId: string, userId: string): Promise<void> => {
     Key: {
       id: leagueId,
     },
-    UpdateExpression: 'REMOVE #users.#userId ADD userCount :decrement',
+    UpdateExpression: 'SET #users.#userId.#isActive = :active ADD userCount :decrement',
     ExpressionAttributeNames: {
       '#users': 'users',
       '#userId': userId,
+      '#isActive': 'isActive',
     },
     ExpressionAttributeValues: {
       ':decrement': -1,
+      ':active': false,
     },
     TableName: process.env.DB_TABLE_LEAGUE,
   })

@@ -57,6 +57,11 @@ provider:
         - "Fn::GetAtt": [ AuthorizerTable, Arn ]
         - "Fn::GetAtt": [ MatchTable, Arn ]
         - "Fn::GetAtt": [ LeagueTable, Arn ]
+        - "Fn::Join":
+          - '/'
+          - - "Fn::GetAtt": [ MatchTable, Arn ]
+            - "index"
+            - "leagueId-index"
 
 functions:
   - ${file(resources/functions-auth.yml)}

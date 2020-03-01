@@ -97,6 +97,7 @@ const league: Handler = async (event) => {
 
   const match = await create({
     ...newMatch,
+    submitter: userId,
     leagueId: id,
   })
 

@@ -15,7 +15,7 @@ const create = async (match: Match): Promise<Match> => {
 }
 
 const getById = async (matchId: string): Promise<Match> => {
-  const { ProjectionExpression, ExpressionAttributeNames } = safeProjection(['id', 'users', 'winner', 'date'])
+  const { ProjectionExpression, ExpressionAttributeNames } = safeProjection(['id', 'users', 'winner', 'date', 'submitter'])
 
   return query({
     KeyConditionExpression: 'id = :matchId',
@@ -30,7 +30,7 @@ const getById = async (matchId: string): Promise<Match> => {
 }
 
 const getByLeagueId = async (leagueId: string): Promise<Array<Match>> => {
-  const { ProjectionExpression, ExpressionAttributeNames } = safeProjection(['id', 'users', 'winner', 'date'])
+  const { ProjectionExpression, ExpressionAttributeNames } = safeProjection(['id', 'users', 'winner', 'date', 'submitter'])
 
   return query({
     KeyConditionExpression: 'leagueId = :leagueId',

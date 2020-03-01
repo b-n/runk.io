@@ -4,6 +4,7 @@ interface Match {
   date: string
   users: Record<string, MatchUser>
   winner: MatchTeam
+  submitter: string
 }
 
 interface MatchUser {

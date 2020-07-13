@@ -8,9 +8,12 @@
     "type": "git",
     "url": "https://github.com/nzchicken/runk.io.git"
   },
+  "files": {
+    "elasticmq.jar": "https://s3-eu-west-1.amazonaws.com/softwaremill-public/elasticmq-server-0.15.5.jar"
+  },
   "scripts": {
-    "start": "sls offline start",
-    "init": "sls dynamodb install",
+    "start": "node bin/start.js",
+    "init": "node bin/init.js",
     "test": "jest",
     "test:coverage": "jest --coverage --coverageDirectory coverage",
     "lint": "eslint --ext=ts src",
@@ -23,6 +26,7 @@
     "date-fns": "^2.8.1",
     "lodash": "^4.17.15",
     "node-fetch": "^2.6.0",
+    "serverless-offline-sqs": "^3.1.3",
     "source-map-support": "^0.5.10",
     "uuid": "^3.3.3"
   },

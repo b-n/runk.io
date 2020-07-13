@@ -5,6 +5,7 @@ plugins:
   - serverless-webpack
   - serverless-dynamodb-local
   - serverless-offline-ssm
+  - serverless-offline-sqs
   - serverless-offline
 
 custom:
@@ -22,8 +23,17 @@ custom:
       - dev
     start:
       port: 8000
-      inMemory: true
+      inMemory: false
       migrate: true
+      dbPath: ./db
+  serverless-offline-sqs:
+    autoCreate: true
+    apiVersion: '2012-11-05'
+    endpoint: http://0.0.0.0:9324
+    region: ${self:custom.region}
+    accessKeyId: root
+    secretAccessKey: root
+    skipCacheInvalidation: false
 
 package:
   individually: false
@@ -34,15 +44,17 @@ provider:
   stage: dev
   region: eu-central-1
   environment:
-    REGION: ${self:custom.region}
-    STAGE: ${self:custom.stage}
     DB_TABLE_USER: ${self:service.name}-${self:custom.stage}-user
     DB_TABLE_AUTHORIZER: ${self:service.name}-${self:custom.stage}-authorizer
     DB_TABLE_LEAGUE: ${self:service.name}-${self:custom.stage}-league
     DB_TABLE_MATCH: ${self:service.name}-${self:custom.stage}-match
-    JWT_SECRET: ${ssm:/runk/${self:custom.stage}/jwtSecret~true}
     GOOGLE_CLIENT_ID: ${ssm:/runk/${self:custom.stage}/googleClientId}
     GOOGLE_CLIENT_SECRET: ${ssm:/runk/${self:custom.stage}/googleClientSecret~true}
+    JWT_SECRET: ${ssm:/runk/${self:custom.stage}/jwtSecret~true}
+    QUEUE_RECALCULATE: ${self:service.name}-${self:custom.stage}-recalculate
+    REGION: ${self:custom.region}
+    STAGE: ${self:custom.stage}
+
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -72,3 +84,4 @@ functions:
 
 resources:
   - ${file(resources/dynamodb.yml)}
+  - ${file(resources/queue.yml)}

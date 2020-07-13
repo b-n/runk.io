@@ -1,0 +1,5 @@
+Resources:
+  RecalculateQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: ${self:provider.environment.QUEUE_RECALCULATE}

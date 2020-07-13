@@ -38,7 +38,7 @@ league-leave:
         path: league/{id}/leave
         cors: true
         authorizer: auth
-league-remove:
+league-update-users:
   handler: src/league/update-users.handler
   events:
     - http:
@@ -46,3 +46,19 @@ league-remove:
         path: league/{id}/update-users
         cors: true
         authorizer: auth
+league-recalculate:
+  handler: src/league/recalculate.handler
+  events:
+    - http:
+        method: post
+        path: league/{id}/recalculate
+        cors: true
+        authorizer: auth
+league-recalculate-queue:
+  handler: src/league/recalculate-queue.handler
+  events:
+    - sqs:
+        arn:
+          Fn::GetAtt:
+            - RecalculateQueue 
+            - Arn

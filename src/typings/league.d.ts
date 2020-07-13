@@ -12,7 +12,7 @@ interface League {
 }
 
 interface LeagueUser {
-  id?: string
+  id: string
   displayName: string
   pictureURL: string
   score: number

@@ -1,4 +1,5 @@
 import uuidv4 from 'uuid/v4'
+import assignWith from 'lodash/assignWith'
 
 import { put, query, scan, update as updateDynamo, safeProjection } from '../lib/dynamo'
 
@@ -70,22 +71,28 @@ const getById = async (leagueId: string): Promise<League> => {
     .then(results => results.Count === 0 ? null : results.Items[0] as League)
 }
 
-const setUsers = async (leagueId: string, users: Record<string, LeagueUser>): Promise<void> => {
+const setUsers = async (league: League, users: Record<string, LeagueUser>): Promise<Array<LeagueUser>> => {
+  const newUserMap = assignWith(
+    league.users,
+    users,
+    (obj, src) => ({ ...obj, ...src })
+  )
+
   return updateDynamo({
     Key: {
-      id: leagueId,
+      id: league.id,
     },
     UpdateExpression: 'SET userCount = :userCount,#users = :users',
     ExpressionAttributeNames: {
       '#users': 'users',
     },
     ExpressionAttributeValues: {
-      ':users': users,
-      ':userCount': Object.keys(users).length,
+      ':users': newUserMap,
+      ':userCount': Object.keys(newUserMap).length,
     },
     TableName: process.env.DB_TABLE_LEAGUE,
   })
-    .then(() => null)
+    .then(() => Object.values(newUserMap))
 }
 
 const addUser = async (leagueId: string, user: User): Promise<void> => {
@@ -175,6 +182,10 @@ const updateScores = async (leagueId: string, scores: Array<ScoreUpdate>): Promi
     .then(() => null)
 }
 
+const recalculate = async (league: League): Promise<Array<LeagueUser>> => {
+  return Promise.resolve(Object.values(league.users))
+}
+
 const getAll = async (): Promise<Array<League>> => {
   const { ProjectionExpression, ExpressionAttributeNames } = safeProjection([
     'id',
@@ -201,5 +212,6 @@ export {
   addUser,
   removeUser,
   updateScores,
+  recalculate,
   ScoreUpdate,
 }
